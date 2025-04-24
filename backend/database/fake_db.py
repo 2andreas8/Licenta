@@ -1,5 +1,5 @@
 from auth.models import UserInDB
-from auth.security import hash_password
+from auth.password_utils import hash_password
 
 fake_users_db = {
     "andrei": UserInDB(
