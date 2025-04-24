@@ -33,3 +33,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
 @router.get("/me", response_model=models.User)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
     return current_user
+
+@router.post("/logout")
+def logout():
+    return {"message": "Logged out. Token should be removed on client side."}
