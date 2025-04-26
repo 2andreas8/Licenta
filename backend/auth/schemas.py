@@ -11,6 +11,10 @@ class User(BaseModel):
     full_name: Optional[str] = None
     disabled: Optional[bool] = None
 
+    model_config = {
+        "from_attributes": True
+    } # setare pt a permite fastapi sa faca trecerea din sqlalchemy user -> pydantic user -> json
+
 class UserInDB(User):
     hashed_password: str
 
@@ -20,3 +24,9 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     username: Optional[str] = None
+
+class UserCreate(BaseModel):
+    username: str
+    email: str
+    full_name: str
+    password: str

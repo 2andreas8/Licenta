@@ -1,4 +1,4 @@
-from auth.models import UserInDB
+from auth.schemas import UserInDB
 from auth.password_utils import hash_password
 
 fake_users_db = {
