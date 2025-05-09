@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean
 from database.db import Base
+from sqlalchemy.orm import relationship
 
 class User(Base):
     __tablename__ = "users"
@@ -10,4 +11,5 @@ class User(Base):
     full_name = Column(String)
     hashed_password = Column(String, nullable=False)
     disabled = Column(Boolean, default=False)
+    documents = relationship("Document", back_populates="user")
 

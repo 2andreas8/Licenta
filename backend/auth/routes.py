@@ -1,9 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
-from auth import models, security, schemas
+from auth import models, security, schemas, password_utils
 from auth.security import get_current_user
-from database.fake_db import get_user
 
 from sqlalchemy.orm import Session
 from database.db import SessionLocal
@@ -13,19 +12,26 @@ from auth.password_utils import  hash_password
 
 router = APIRouter(prefix="/auth")
 
-@router.post("/token", response_model=schemas.Token)
-def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = get_user(form_data.username)
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+@router.post("/login", response_model=schemas.Token)
+def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
+    user = db.query(DBUser).filter(DBUser.username == form_data.username).first()
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
+            detail="Invalid username. Please check your credentials and try again.",
         )
 
-    if not security.verify_password(form_data.password, user.hashed_password):
+    if not password_utils.verify_password(form_data.password, user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect password",
+            detail="Invalid password. Please check your credentials and try again.",
         )
 
     access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -34,7 +40,7 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
         expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {"access_token": access_token, "token_type": "bearer", "message": f"Welcome back, {user.username}!"}
 
 @router.get("/me", response_model=schemas.User)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
@@ -43,13 +49,6 @@ def read_users_me(current_user: models.User = Depends(get_current_user)):
 @router.post("/logout")
 def logout():
     return {"message": "Logged out. Token should be removed on client side."}
-
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
 
 @router.post("/register", response_model=schemas.User)
 def register(user: UserCreate, db: Session = Depends(get_db)):
