@@ -1,10 +1,21 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, UploadFile, Depends
+from sqlalchemy.orm import Session
 from documents.utils import extract_text_from_file
+from documents.models import Document
+from database.db import SessionLocal
+from auth.security import get_current_user
 
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
 @router.post("/upload")
-async def upload_document(file: UploadFile = File(...)):
+async def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
     if file.content_type not in [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -12,8 +23,17 @@ async def upload_document(file: UploadFile = File(...)):
     ]:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
 
-    # Aceasta parte trebuie să fie în afara blocului `if`
     text = await extract_text_from_file(file)
     # print(f"Extracted text: {text}")
+
+    # Salvare document in baza de date
+    new_document = Document(
+        filename=file.filename,
+        content=text,
+        user_id=current_user.id # document asociat userului curent
+    )
+    db.add(new_document)
+    db.commit()
+    db.refresh(new_document)
 
     return { "filename": file.filename, "text": text }

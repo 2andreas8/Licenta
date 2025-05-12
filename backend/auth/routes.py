@@ -10,7 +10,7 @@ from auth.models import User as DBUser
 from auth.schemas import UserCreate
 from auth.password_utils import  hash_password
 
-router = APIRouter(prefix="/auth")
+router = APIRouter(prefix="/auth", tags=["Auth"])
 
 def get_db():
     db = SessionLocal()
