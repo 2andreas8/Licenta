@@ -1,11 +1,24 @@
-# Python
+# === Python ===
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+*.sqlite3
 venv/
 
-# PyCharm
+# === PyCharm / VS Code ===
 .idea/
+.vscode/
 
-# Sistem
+# === Environment ===
+.env
+
+# === LangChain / Chroma vector store ===
+vectorstore/
+
+# === Uploads / fișiere temporare ===
+temp/
+
+# === OS Specific ===
 .DS_Store
 Thumbs.db
