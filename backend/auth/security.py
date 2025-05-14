@@ -4,11 +4,15 @@ from typing import Optional
 from dotenv import load_dotenv
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
-from jose import JWTError, jwt
+
+import jwt
+from jwt import PyJWTError, ExpiredSignatureError, InvalidTokenError
+import logging
 
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from auth.models import User
+from documents.models import Document
 
 # from database.fake_db import get_user
 
@@ -21,6 +25,9 @@ load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+
+if not SECRET_KEY or not ALGORITHM:
+    raise ValueError("SECRET_KEY and ALGORITHM must be set in the environment variables.")
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
@@ -50,7 +57,7 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
 
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
+def create_access_token(data: dict[str, str], expires_delta: timedelta = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
@@ -59,5 +66,6 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
 def decode_access_token(token: str) -> Optional[dict]:
     try:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-    except JWTError:
+    except (ExpiredSignatureError, InvalidTokenError, PyJWTError) as e:
+        logging.error(f"Token decoding error: {e}")
         return None

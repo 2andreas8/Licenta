@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, UploadFile, Depends
 from sqlalchemy.orm import Session
-from documents.utils import extract_text_from_file
+from documents.utils import extract_text_from_file, save_in_vectorstore
 from documents.models import Document
 from database.db import SessionLocal
 from auth.security import get_current_user
@@ -22,9 +22,10 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
         "text/plain"
     ]:
         raise HTTPException(status_code=400, detail="Unsupported file type.")
-
-    text = await extract_text_from_file(file)
-    # print(f"Extracted text: {text}")
+    try:
+        text, docs = await extract_text_from_file(file)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
 
     # Salvare document in baza de date
     new_document = Document(
@@ -36,4 +37,6 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
     db.commit()
     db.refresh(new_document)
 
-    return { "filename": file.filename, "text": text }
+    save_in_vectorstore(docs, file_id=new_document.id, user_id=current_user.id)
+
+    return { "file_id": new_document.id, "filename": new_document.filename }
