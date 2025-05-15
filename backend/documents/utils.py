@@ -2,7 +2,7 @@ import os
 from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2txtLoader
 from langchain_text_splitters import CharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, OpenAI
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma
 
 from dotenv import load_dotenv
 
