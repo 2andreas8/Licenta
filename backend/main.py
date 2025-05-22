@@ -4,7 +4,17 @@ from auth.routes import router as auth_router
 from documents.routes import router as documents
 import traceback
 
+from fastapi.middleware.cors import CORSMiddleware
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],  
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # inregistreaza rutele din auth.routes
 app.include_router(auth_router)
