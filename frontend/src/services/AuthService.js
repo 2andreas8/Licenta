@@ -19,7 +19,7 @@ export const login = async (username, password) => {
         sessionStorage.setItem('access_token', res.data.access_token);
         return res.data;
     } catch (error) {
-        throw error.respone?.data || error;
+        throw error;
     };
 }
 
@@ -28,7 +28,7 @@ export const register = async (userData) => {
         const res = await axios.post(`${AUTH_API_URL}/register`, userData);
         return res.data;
     } catch (error) {
-        throw error.response?.data || error;
+        throw error;
     };
 }
 

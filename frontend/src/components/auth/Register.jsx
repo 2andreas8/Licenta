@@ -28,7 +28,17 @@ export default function Register() {
             setForm({username: '', password: '', email: '', full_name: ''});
             navigator('/');
         } catch (error) {
-            setError(error.response?.data?.detail || 'Registration failed');
+            const responseData = error?.response?.data;
+
+            if (responseData?.detail) {
+                setError(responseData.detail);
+            } else if (Array.isArray(responseData)) {
+                setError(responseData.map(e => e.detail).join(', '));
+            } else if (error?.message) {
+                setError(error.message);
+            } else {
+                setError('Registration failed');
+            } 
         }
     };
 

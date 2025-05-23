@@ -6,17 +6,26 @@ import { toast } from 'react-toastify';
 export default function Login() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
 
     const navigator = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
+        setError('');
         try {
             const response = await login(username, password);
             toast.success('Welcome back, ' + username + '!');
             navigator('/dashboard');
         } catch (error) {
-            alert(error.detail || 'Login failed');
+            // alert(error.detail || 'Login failed');
+            setError(error?.response?.data?.detail || 'Login failed');
+            // toast.error(error?.response?.data?.detail || 'Login failed');
+            setPassword('');
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -43,7 +52,10 @@ export default function Login() {
                             name="username"
                             placeholder="Username"
                             value={username}
-                            onChange={e => setUsername(e.target.value)}
+                            onChange={e => {
+                                setUsername(e.target.value);
+                                setError('');
+                            }}
                             required
                         />
                         <i className="absolute right-3 top-2 text-white font-normal non-italic">👤</i>
@@ -56,17 +68,29 @@ export default function Login() {
                             name="password"
                             placeholder="Password"
                             value={password}
-                            onChange={e => setPassword(e.target.value)}
+                            onChange={e => {
+                                setPassword(e.target.value);
+                                setError('');
+                            }}
                             required
                         />
                         <i className="absolute right-3 top-2 text-white font-normal non-italic">🔒</i>
                     </div>
                     <button
-                        className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300"
+                        disabled={loading}
+                        //className="w-full py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition duration-300"
+                        className="w-full py-3 px-4 inline-flex items-center justify-center gap-x-2 text-sm font-medium rounded-lg border border-transparent bg-purple-600 text-white hover:bg-purple-700 focus:outline-hidden focus:bg-purple-700 focus:outline-hidden focus:bg-purple-700 disabled:opacity-50 disabled:pointer-events-none"
                         type="submit"
                     >
+                        {loading && (
+                            <span className="animate-spin inline-block size-4 border-2 border-current border-t-transparent text-white rounded-full" 
+                            role="status" 
+                            aria-label="loading">
+                            </span>
+                        )}
                         Login
                     </button>
+                    {error && <div className="text-red-400 mt-2 mb-2">{error}</div>}
                     <div className="mt-4 text-center">
                         <span className="text-white">Don't have an account? </span>
                         <Link to="/register" className="text-purple-300 hover:underline hover:text-purple-400">
