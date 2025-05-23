@@ -58,7 +58,10 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     existing_user = db.query(DBUser).filter(DBUser.username == user.username).first()
     if existing_user:
         print("Username already exists:", user.username)
-        raise HTTPException(status_code=400, detail="Username already registered")
+        raise HTTPException(
+            status_code=400, 
+            detail="Username already exists."
+        )
 
     # Creeaza user nou
     new_user = DBUser(
