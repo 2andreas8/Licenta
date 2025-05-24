@@ -22,7 +22,7 @@ export default function HeaderComponent({ onShowProfile }) {
     };
 
     return (
-        <nav className="bg-gray-800 text-white px-6 py-4 flex justify-between items-center shadow">
+        <nav className="bg-indigo-950 text-white px-6 py-4 flex justify-between items-center shadow">
             { /* titlu */ }
             <h1 className="font-bold text-xl">
                 DocHelp    
@@ -31,7 +31,7 @@ export default function HeaderComponent({ onShowProfile }) {
             <div className="relative">
                 <span
                     onClick={() => setOpen(!open)}
-                    className="cursor-pointer w-10 hh-10 rounded-full bg-gray-600 text-white flex items-center justify-center font-semibold select-none"
+                    className="cursor-pointer w-10 hh-10 rounded-full bg-slate-800 text-gray-300 flex items-center justify-center font-semibold select-none hover:bg-gray-800 text-white"
                 >
                     {initials}
                 </span>

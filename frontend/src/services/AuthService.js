@@ -55,3 +55,25 @@ export const logout = () => {
     // localStorage.removeItem('access_token');
     sessionStorage.removeItem('access_token');
 }
+
+export const changePasswordRequest = async (oldPassword, newPassword) => {
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+        throw new Error('No token found');
+    }
+
+    try {
+        const res = await axios.post(
+            `${AUTH_API_URL}/change_password`,
+            { old_password: oldPassword, new_password: newPassword },
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                },
+            }
+        );
+        return res.data;
+    } catch (error) {
+        throw error || "Unknown error";
+    }
+}
