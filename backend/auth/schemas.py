@@ -31,3 +31,7 @@ class UserCreate(BaseModel):
     email: str
     full_name: str
     password: str
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str

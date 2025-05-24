@@ -7,7 +7,7 @@ from auth.security import get_current_user
 from sqlalchemy.orm import Session
 from database.db import SessionLocal
 from auth.models import User as DBUser
-from auth.schemas import UserCreate
+from auth.schemas import UserCreate, ChangePasswordRequest
 from auth.password_utils import  hash_password
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -82,3 +82,16 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
         db.rollback()
         print("Error registering user:", str(e))
         raise HTTPException(status_code=500, detail="Error creating user")
+    
+@router.post("/change_password")
+def change_password(
+    data: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user)
+):
+    user = db.query(DBUser).filter(DBUser.id == current_user.id).first()
+    if not password_utils.verify_password(data.old_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Old password is incorrect.")
+    user.hashed_password = hash_password(data.new_password)
+    db.commit()
+    return {"message": "Password changed successfully."}
