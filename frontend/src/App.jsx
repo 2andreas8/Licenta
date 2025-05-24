@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/Dashboard';
+import ProfileComponent from './components/profile/ProfileComponent'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import './index.css';
@@ -24,6 +25,11 @@ export default function App() {
         <Route path="/dashboard" element={
           <AuthenticatedRoute>
             <Dashboard />
+          </AuthenticatedRoute>
+        }></Route>
+        <Route path="/profile" element={
+          <AuthenticatedRoute>
+            <ProfileComponent />
           </AuthenticatedRoute>
         }></Route>
       </Routes>

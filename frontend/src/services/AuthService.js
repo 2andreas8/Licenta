@@ -47,7 +47,7 @@ export const getCurrentUser = async () => {
         });
         return res.data;
     } catch (error) {
-        throw error.response?.data || error;
+        throw error.response?.data?.detail || error.message || "Unknown error";
     }
 }
 

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { login } from "../../services/authService";
+import { login, getCurrentUser } from "../../services/authService";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from 'react-toastify';
 
@@ -17,6 +17,8 @@ export default function Login() {
         setError('');
         try {
             const response = await login(username, password);
+            const userDetails = await getCurrentUser();
+            sessionStorage.setItem('full_name', userDetails.full_name);
             toast.success('Welcome back, ' + username + '!');
             navigator('/dashboard');
         } catch (error) {
