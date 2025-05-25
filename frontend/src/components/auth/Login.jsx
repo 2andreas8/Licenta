@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { login, getCurrentUser } from "../../services/authService";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { toast } from 'react-toastify';
 
 export default function Login() {
@@ -10,6 +10,15 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
 
     const navigator = useNavigate();
+
+    const location = useLocation();
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        if(params.get("session_expired")) {
+            setError("Session expired. Please log in again.")
+        }
+    }, [location]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();

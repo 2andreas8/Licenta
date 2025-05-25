@@ -5,14 +5,23 @@ import Dashboard from './components/Dashboard';
 import ProfileComponent from './components/profile/ProfileComponent'
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { getCurrentUser } from './services/authService';
+import { useState, useEffect } from 'react';
 import './index.css';
 
 function AuthenticatedRoute({ children }) {
-  /// const user = localStorage.getItem('access_token')
-  const user = sessionStorage.getItem('access_token');
-  if (!user) {
-    return <Navigate to="/" replace/>;
-  }
+  const [loading, setLoading] = useState(true);
+  const [valid, setValid] = useState(false);
+
+  useEffect(() => {
+    getCurrentUser()
+      .then(() => setValid(true))
+      .catch(() => setValid(false))
+      .finally(() => setLoading(false));
+  }, []);
+
+  if(loading) return <div>Loading...</div>;
+  if(!valid) return <Navigate to="/?session_expired=1" replace />;
   return children;
 }
 

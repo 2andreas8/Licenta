@@ -1,6 +1,7 @@
 import { Link, useNavigate } from "react-router-dom";
 import { logout } from "../../services/authService";
 import { useState } from "react";
+import SidebarComponent from "./SidebarComponent";
 
 function getInitials(name) {
     if(!name) return '';
@@ -16,17 +17,32 @@ export default function HeaderComponent({ onShowProfile }) {
     const full_name = sessionStorage.getItem('full_name');
     const initials = getInitials(full_name);
 
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+
     const handleLogout = async () => {
         logout();
         navigate('/');
     };
 
     return (
-        <nav className="bg-indigo-950 text-white px-6 py-4 flex justify-between items-center shadow">
-            { /* titlu */ }
-            <h1 className="font-bold text-xl">
-                DocHelp    
-            </h1>    
+        <nav className="bg-indigo-950 text-white px-2 py-2 flex justify-between items-center shadow">
+
+            <header className="flex justify-between items-center p-4 text-white">
+                <div className={`flex items-center gap-3 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
+                    {!isSidebarOpen && (<button
+                        onClick={() => setSidebarOpen(true)}
+                        className="text-white text-2xl font-bold"
+                    >
+                        ☰
+                    </button>)}
+
+                    <h1 className="font-bold text-xl">
+                        DocHelp
+                    </h1>
+                </div>
+            </header>
+
+            <SidebarComponent isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="relative">
                 <span

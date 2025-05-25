@@ -47,6 +47,12 @@ export const getCurrentUser = async () => {
         });
         return res.data;
     } catch (error) {
+        if (error.response?.status === 401) {
+            // Token expired or invalid
+            toast.error("Session expired. Please log in again.");
+            sessionStorage.removeItem('access_token');
+            window.location.href = "/"; // or use navigate("/") if in a React component
+        }
         throw error.response?.data?.detail || error.message || "Unknown error";
     }
 }
@@ -77,3 +83,14 @@ export const changePasswordRequest = async (oldPassword, newPassword) => {
         throw error || "Unknown error";
     }
 }
+
+axios.interceptors.response.use(
+    respone => respone,
+    error => {
+        if(error.response?.status === 401) {
+            sessionStorage.removeItem('access_token');
+            window.location.href = "/?session_expired=1";
+        }
+        return Promise.reject(error);
+    }
+)
