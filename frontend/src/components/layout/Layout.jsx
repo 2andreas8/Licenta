@@ -1,0 +1,40 @@
+import React, { useState } from "react";
+import HeaderComponent from "./HeaderComponent";
+import SidebarComponent from "./SidebarComponent";
+import ProfileComponent from "../profile/ProfileComponent";
+
+export default function Layout({ children }) {
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
+    const [showProfile, setShowProfile] = useState(false);
+
+  return (
+    <div className="flex min-h-screen">
+      <div className="flex flex-col flex-1">
+        <HeaderComponent 
+            onShowProfile={() => setShowProfile(true)}
+            onSidebarToggle={() => setSidebarOpen(true)}
+        />
+        <SidebarComponent
+            isOpen={isSidebarOpen}
+            onClose={() => setSidebarOpen(false)}
+        />
+        <main className="flex-1 bg-gradient-to-b from-purple-700 to-purple-900 p-6 overflow-y-auto">
+          {children}
+        </main>
+        {showProfile && (
+           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="relative bg-slate-800 text-white rounded-lg p-6 shadow-2xl max-w-md w-full">
+                    <button
+                        onClick={() => setShowProfile(false)}
+                        className="absolute top-2 right-2 text-gray-400 hover:text-black text-xl"
+                    >
+                        &times;
+                    </button>
+                    <ProfileComponent />
+                </div>
+            </div>
+        )}
+      </div>
+    </div>
+  );
+}

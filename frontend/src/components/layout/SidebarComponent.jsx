@@ -1,6 +1,19 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default  function SidebarComponent({ isOpen, onClose }) {
+    const navigate = useNavigate();
+
+    const handleNavigate = () => {
+        onClose();
+        navigate("/chat/new");
+    }
+
+    const handleDashboardNavigate = () => {
+        onClose();
+        navigate("/dashboard");
+    }
+
     return (
         <>
         <aside 
@@ -17,9 +30,18 @@ export default  function SidebarComponent({ isOpen, onClose }) {
                         &times;
                     </button>
                 </div>
-                <nav className="p-4">
-                    <button className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded">
+                <nav className="p-4 flex flex-col space-y-3">
+                    <button 
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                    onClick={handleNavigate}    
+                    >
                         New chat
+                    </button>
+                    <button 
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                    onClick={handleDashboardNavigate}    
+                    >
+                        Dashboard
                     </button>
                 </nav>
             </aside>

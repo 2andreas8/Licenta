@@ -3,6 +3,8 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/Dashboard';
 import ProfileComponent from './components/profile/ProfileComponent'
+import NewChatComponent from './components/chat/NewChatComponent';
+import Layout from './components/layout/Layout';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getCurrentUser } from './services/authService';
@@ -33,12 +35,23 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={
           <AuthenticatedRoute>
-            <Dashboard />
+            <Layout>
+              <Dashboard />
+            </Layout>
           </AuthenticatedRoute>
         }></Route>
         <Route path="/profile" element={
           <AuthenticatedRoute>
-            <ProfileComponent />
+            <Layout>
+              <ProfileComponent />
+            </Layout>
+          </AuthenticatedRoute>
+        }></Route>
+        <Route path="/chat/new" element={
+          <AuthenticatedRoute>
+            <Layout>
+              <NewChatComponent />
+            </Layout>
           </AuthenticatedRoute>
         }></Route>
       </Routes>
