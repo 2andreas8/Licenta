@@ -18,7 +18,7 @@ export default function Layout({ children }) {
             isOpen={isSidebarOpen}
             onClose={() => setSidebarOpen(false)}
         />
-        <main className="flex-1 bg-gradient-to-b from-purple-700 to-purple-900 p-6 overflow-y-auto">
+        <main className="flex-1 bg-gradient-to-b from-purple-700 to-purple-900 overflow-y-auto">
           {children}
         </main>
         {showProfile && (
