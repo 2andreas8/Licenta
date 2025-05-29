@@ -10,14 +10,12 @@ function getInitials(name) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function HeaderComponent({ onShowProfile }) {
+export default function HeaderComponent({ onShowProfile, onSidebarToggle, isSidebarOpen }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     
     const full_name = sessionStorage.getItem('full_name');
     const initials = getInitials(full_name);
-
-    const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     const handleLogout = async () => {
         logout();
@@ -25,24 +23,24 @@ export default function HeaderComponent({ onShowProfile }) {
     };
 
     return (
-        <nav className="bg-indigo-950 text-white px-2 py-2 flex justify-between items-center shadow">
+        <nav className="bg-indigo-950 text-white px-2 py-2 flex justify-between items-center shadow transition-all duration-300">
 
             <header className="flex justify-between items-center p-4 text-white">
-                <div className={`flex items-center gap-3 transition-all duration-300 ${isSidebarOpen ? 'ml-64' : 'ml-0'}`}>
-                    {!isSidebarOpen && (<button
-                        onClick={() => setSidebarOpen(true)}
-                        className="text-white text-2xl font-bold"
-                    >
-                        ☰
-                    </button>)}
+                <div className={`flex items-center gap-3 transition-all duration-300 ${isSidebarOpen ? "translate-x-64" : ""}`}>
+                    {!isSidebarOpen && ( 
+                        <button
+                            onClick={onSidebarToggle}
+                            className="text-white text-2xl font-bold"
+                        >
+                            ☰
+                        </button>
+                    )}
 
                     <h1 className="font-bold text-xl">
                         DocHelp
                     </h1>
                 </div>
             </header>
-
-            <SidebarComponent isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
 
             <div className="relative">
                 <span

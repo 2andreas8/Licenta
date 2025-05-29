@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import HeaderComponent from "./HeaderComponent";
 import SidebarComponent from "./SidebarComponent";
 import ProfileComponent from "../profile/ProfileComponent";
+import MyDocumentsComponent from '../profile/MyDocumentsComponent';
 
 export default function Layout({ children }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
     const [showProfile, setShowProfile] = useState(false);
+    const [showDocs, setShowDocs] = useState(false);
 
   return (
     <div className="flex min-h-screen">
@@ -13,10 +15,12 @@ export default function Layout({ children }) {
         <HeaderComponent 
             onShowProfile={() => setShowProfile(true)}
             onSidebarToggle={() => setSidebarOpen(true)}
+            isSidebarOpen={isSidebarOpen}
         />
         <SidebarComponent
             isOpen={isSidebarOpen}
             onClose={() => setSidebarOpen(false)}
+            setDocs={setShowDocs}
         />
         <main className="flex-1 bg-gradient-to-b from-purple-700 to-purple-900 overflow-y-auto">
           {children}
@@ -33,6 +37,11 @@ export default function Layout({ children }) {
                     <ProfileComponent />
                 </div>
             </div>
+        )}
+        {showDocs && (
+          <div className="fixed inset-0 bg-black/50 flex items-center juistify-center z-50">
+            <MyDocumentsComponent onClose={() => setShowDocs(false)} />
+          </div>
         )}
       </div>
     </div>

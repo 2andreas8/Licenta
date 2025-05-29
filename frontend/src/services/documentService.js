@@ -28,3 +28,23 @@ export const uploadDocument = async (file) => {
     }
 };
 
+export const fetchUserDocuments = async() => {
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+        throw new Error("No token found");
+    }
+
+    try {
+        const res = await axios.get(`${DOCUMENTS_API_URL}/my_files`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.data;
+    } catch (error) {
+        if (error.response?.status === 401) {
+            throw new Error("Session expired. Please log in again.");
+        }
+
+        throw error.response?.data?.detail || error.message || "Unknown error";
+    }
+};
+

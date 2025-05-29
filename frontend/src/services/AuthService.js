@@ -87,7 +87,14 @@ export const changePasswordRequest = async (oldPassword, newPassword) => {
 axios.interceptors.response.use(
     respone => respone,
     error => {
-        if(error.response?.status === 401) {
+        const originalRequest = error.config;
+        if(
+            originalRequest.url.includes('/') ||
+            originalRequest.url.includes('/register')
+        ) {
+            return Promise.reject(error);
+        }
+        if(error.response && error.response.status === 401) {
             sessionStorage.removeItem('access_token');
             window.location.href = "/?session_expired=1";
         }

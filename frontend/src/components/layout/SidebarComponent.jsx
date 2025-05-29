@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default  function SidebarComponent({ isOpen, onClose }) {
+export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
 
     const handleNavigate = () => {
@@ -31,6 +31,14 @@ export default  function SidebarComponent({ isOpen, onClose }) {
                     </button>
                 </div>
                 <nav className="p-4 flex flex-col space-y-3">
+                    <button 
+                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                    onClick={() => {
+                        setDocs(true);
+                    }}    
+                    >
+                        📄 My Documents
+                    </button>
                     <button 
                     className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
                     onClick={handleNavigate}    
