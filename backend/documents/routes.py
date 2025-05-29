@@ -40,3 +40,11 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
     save_in_vectorstore(docs, file_id=new_document.id, user_id=current_user.id)
 
     return { "file_id": new_document.id, "filename": new_document.filename }
+
+@router.get("/my_files")
+def get_my_files(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    files = db.query(Document).filter(Document.user_id == current_user.id).all()
+    return [{
+        "id": file.id,
+        "filename": file.filename
+    } for file in files]
