@@ -1,18 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
-from pydantic import BaseModel
+from nlp.schemas import QARequest
 from auth.security import get_current_user
 from nlp.utils import get_vectorstore_for_file, generate_answer
 
 import os
 
-from langchain_chroma import Chroma
-from langchain_openai import OpenAIEmbeddings
-
 router = APIRouter(prefix="/nlp", tags=["NLP"])
-
-class QARequest(BaseModel):
-    question: str
-    file_id: int
 
 @router.post("/ask")
 async def ask_question(
