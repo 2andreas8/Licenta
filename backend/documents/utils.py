@@ -55,6 +55,9 @@ def save_in_vectorstore(documents, file_id: int, user_id: int):
     persist_dir = f"./vectorstore/{user_id}/{file_id}"
     os.makedirs(persist_dir, exist_ok=True)
 
+    print("persist_dir =", persist_dir)
+    print("persist_dir absolut =", os.path.abspath(persist_dir))
+
     try:
         vector_store = Chroma.from_documents(
             documents=docs,

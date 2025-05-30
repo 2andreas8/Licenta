@@ -2,6 +2,7 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from auth.routes import router as auth_router
 from documents.routes import router as documents
+from nlp.routes import router as nlp_router
 import traceback
 
 from fastapi.middleware.cors import CORSMiddleware
@@ -19,6 +20,7 @@ app.add_middleware(
 # inregistreaza rutele din auth.routes
 app.include_router(auth_router)
 app.include_router(documents)
+app.include_router(nlp_router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
