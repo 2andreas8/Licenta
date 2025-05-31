@@ -35,24 +35,4 @@ async def ask_question(
         return {"answer": answer}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error generating answer: {str(e)}")
-
-    # Loading the vector store
-    # persist_dir = f"./vectorstore/{current_user.id}/{qa.file_id}"
-    # print("persist_dir =", persist_dir)
-    # print("persist_dir absolut =", os.path.abspath(persist_dir))
-    # try:
-    #     vectorstore = get_vectorstore_for_file(persist_directory=persist_dir)
-    # except Exception as e:
-    #     raise HTTPException(status_code=404, detail="Vector store not found for this file.")
-    
-    # result = vectorstore.similarity_search(qa.question, k=2)
-    # if not result:
-    #     raise HTTPException(status_code=404, detail="No relevant documents found.")
-    # context = "\n".join([doc.page_content for doc in result])
-
-    # try:
-    #     answer = generate_answer(qa.question, context)
-    #     return {"answer": answer}
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=f"Error generating answer: {str(e)}")
     
