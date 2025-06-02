@@ -23,7 +23,7 @@ export default function HeaderComponent({ onShowProfile, onSidebarToggle, isSide
     };
 
     return (
-        <nav className="bg-indigo-950 text-white px-2 py-2 flex justify-between items-center shadow transition-all duration-300">
+        <nav className="h-16 bg-indigo-950 text-white px-2 py-2 flex justify-between items-center shadow transition-all duration-300">
 
             <header className="flex justify-between items-center p-4 text-white">
                 <div className={`flex items-center gap-3 transition-all duration-300 ${isSidebarOpen ? "translate-x-64" : ""}`}>

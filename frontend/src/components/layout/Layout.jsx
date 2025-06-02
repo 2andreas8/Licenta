@@ -22,7 +22,7 @@ export default function Layout({ children }) {
             onClose={() => setSidebarOpen(false)}
             setDocs={setShowDocs}
         />
-        <main className="flex-1 bg-gradient-to-b from-purple-700 to-purple-900 overflow-y-auto">
+        <main className="flex min-h-screen bg-gradient-to-b from-purple-700 to-purple-900">
           {children}
         </main>
         {showProfile && (
