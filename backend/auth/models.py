@@ -11,5 +11,7 @@ class User(Base):
     full_name = Column(String)
     hashed_password = Column(String, nullable=False)
     disabled = Column(Boolean, default=False)
+
     documents = relationship("Document", back_populates="user")
+    conversations = relationship("Conversation", back_populates="user")
 

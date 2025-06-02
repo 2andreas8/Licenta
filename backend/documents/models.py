@@ -9,4 +9,6 @@ class Document(Base):
     filename = Column(String, nullable=False)
     content = Column(Text, nullable=False)
     user_id = Column(Integer, ForeignKey("users.id"))
+
     user = relationship("User", back_populates="documents")
+    conversations = relationship("Conversation", back_populates="document")
