@@ -1,5 +1,7 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, UploadFile, Depends
 from sqlalchemy.orm import Session
+from typing import List
+from documents import schemas
 from documents.utils import extract_text_from_file, save_in_vectorstore
 from documents.models import Document
 from database.db import SessionLocal
@@ -14,8 +16,12 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/upload")
-async def upload_document(file: UploadFile = File(...), db: Session = Depends(get_db), current_user=Depends(get_current_user)):
+@router.post("/upload", response_model=schemas.DocumentResponse)
+async def upload_document(
+    file: UploadFile = File(...), 
+    db: Session = Depends(get_db), 
+    current_user=Depends(get_current_user)
+):
     if file.content_type not in [
         "application/pdf",
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
@@ -41,10 +47,28 @@ async def upload_document(file: UploadFile = File(...), db: Session = Depends(ge
 
     return { "file_id": new_document.id, "filename": new_document.filename }
 
-@router.get("/my_files")
-def get_my_files(db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+@router.get("/my_files", response_model=List[schemas.DocumentBrief])
+def get_my_files(
+    db: Session = Depends(get_db), 
+    current_user = Depends(get_current_user)
+):
     files = db.query(Document).filter(Document.user_id == current_user.id).all()
     return [{
         "id": file.id,
         "filename": file.filename
     } for file in files]
+
+@router.get("/{file_id}", response_model=schemas.DocumentResponse)
+async def get_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    return document
