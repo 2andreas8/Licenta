@@ -1,18 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { fetchConversations } from '../../services/conversationsService';
+import { toast } from 'react-toastify';
+import { deleteConversation } from '../../services/conversationsService';
+import { TrashIcon } from '@heroicons/react/24/outline';
 
 export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
+    const [conversations, setConversations] = useState([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (isOpen) {
+            loadConversations();
+        }
+    }, [isOpen]);
+
+    const loadConversations = async () => {
+        setLoading(true);
+        try {
+            const response = await fetchConversations();
+            setConversations(response);
+        } catch (error) {
+            console.error("Failed to fetch conversations:", error);
+            toast.error("Failed to load conversations. Please try again later.");
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const handleNavigate = () => {
-        onClose();
         navigate("/chat/new");
+        onClose();
     }
 
     const handleDashboardNavigate = () => {
-        onClose();
         navigate("/dashboard");
+        onClose();
     }
+
+    const handleDeleteConversation = async (e, conversationId) => {
+        e.stopPropagation(); // prevent the click event from propagating to the button
+        if (window.confirm("Are you sure you want to delete this conversation?")) {
+            try {
+                await deleteConversation(conversationId);
+                toast.success("Conversation deleted successfully");
+                loadConversations(); // reload conversations
+                navigate("/dashboard"); 
+                onClose();
+            } catch (error) {
+                console.error("Failed to delete conversation: ", error);
+                toast.error("Failed to delete conversation. Please try again later.");
+            }
+        }
+    };
 
     return (
         <>
@@ -43,7 +84,7 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                     className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
                     onClick={handleNavigate}    
                     >
-                        New chat
+                        + New chat
                     </button>
                     <button 
                     className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
@@ -52,7 +93,46 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                         Dashboard
                     </button>
                 </nav>
+
+                {/* Conversation list */}
+                <div className='flex-1 overflow-y-auto'>
+                    <div className='px-4 py-2'>
+                        <h3 className='text-sm font-semibold text-purple-200 mb-2'>Recent Conversations</h3>
+                        {loading ? (
+                            <div className='text-white text-sm'>Loading...</div>
+                        ) : conversations.length > 0 ? (
+                            <div className='space-y-1'>
+                            {conversations.map((conv) => (
+                                <div 
+                                    className='flex items-center group hover:bg-purple-700/59 rounded'
+                                    key={conv.id}
+                                >
+                                    <button
+                                        key={conv.id}
+                                        onClick={() => {
+                                            navigate(`/chat/${conv.id}`);
+                                            onClose();
+                                        }}
+                                        className='w-full px-4 py-2 text-left hover:bg-purple-700/50 text-purple-100 text-sm truncate rounded' 
+                                    >
+                                        {conv.title || "Untitled Conversation"}
+                                    </button>
+                                    <button
+                                        onClick={(e) => handleDeleteConversation(e, conv.id)}
+                                        className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                    >
+                                        <TrashIcon className='h-4 w-4' aria-hidden="true" />
+                                        <span className='sr-only'>Delete Conversation</span>
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                        ) : (
+                            <div className='text-purple-200 text-sm'>No conversations found.</div>
+                        )}
+                    </div>
+                </div>
             </aside>
         </>
-    )
+    );
 }

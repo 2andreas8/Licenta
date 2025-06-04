@@ -3,7 +3,7 @@ import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Dashboard from './components/Dashboard';
 import ProfileComponent from './components/profile/ProfileComponent'
-import NewChatComponent from './components/chat/NewChatComponent';
+import ChatContainer from './components/chat/ChatContainer';
 import Layout from './components/layout/Layout';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -47,10 +47,10 @@ export default function App() {
             </Layout>
           </AuthenticatedRoute>
         }></Route>
-        <Route path="/chat/new" element={
+        <Route path="/chat/:conversationId" element={
           <AuthenticatedRoute>
             <Layout>
-              <NewChatComponent />
+              <ChatContainer />
             </Layout>
           </AuthenticatedRoute>
         }></Route>

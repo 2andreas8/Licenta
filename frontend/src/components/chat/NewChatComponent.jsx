@@ -3,6 +3,7 @@ import { uploadDocument } from "../../services/documentService";
 import { toast } from "react-toastify";
 import { fetchUserDocuments } from "../../services/documentService";
 import { askQuestion } from "../../services/chatService";
+import { createConversation, addMessageToConversation } from "../../services/conversationsService";
 
 export default function NewChatComponent() {
     const [file, setFile] = useState(null);
@@ -19,6 +20,8 @@ export default function NewChatComponent() {
     const [waitingForAnswer, setWaitingForAnswer] = useState(false);
     const messagesEndRef = useRef(null);
 
+    const [currentConversation, setCurrentConversation] = useState(null);
+
     useEffect(() => {
     if (messagesEndRef.current) {
         messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
@@ -31,6 +34,16 @@ export default function NewChatComponent() {
             toast.error("Failed to load your documents. Please try again later.");
         });
     }, []);
+
+    const startNewConversation = async (documentId, filename) => {
+        try {
+            const conversation = await createConversation(documentId, filename);
+            setCurrentConversation(conversation);
+        } catch (error) {
+            console.error("Error creating conversation:", error);
+            toast.error("Failed to start a new conversation. Please try again later.");
+        }
+    };
 
     const handleFileChange = (e) => {
         setFile(e.target.files[0]);
@@ -46,12 +59,12 @@ export default function NewChatComponent() {
             alert("Please select a file first!");
             return;
         }
-        // TODO: file upload logic here
+        
         setLoading(true);
         try {
             const result = await uploadDocument(file);
+            await startNewConversation(result.id, result.filename);
             toast.success("File uploaded successfully!");
-            // Redirect to chat page or update state as needed
             setUploadedFile(result);
         } catch (error) {
             toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
@@ -70,10 +83,24 @@ export default function NewChatComponent() {
         setWaitingForAnswer(true);
         
         try {
+            await addMessageToConversation(
+                currentConversation.id,
+                userInput,
+                "user"
+            );
+
             const res = await askQuestion({ 
                 question: userInput, 
                 fileId: uploadedFile.id 
             });
+
+            const assistantMessage = {role: "assistant", content: res.answer};
+            await addMessageToConversation(
+                currentConversation.id,
+                assistantMessage.content,
+                assistantMessage.role
+            );
+
             setTimeout(() => {
                 setMessages(prev => [...prev, {role: "assistant", content: res.answer}]);
                 setWaitingForAnswer(false);
@@ -86,14 +113,20 @@ export default function NewChatComponent() {
         // }
     };
 
-    const onFileSelect = () => {
+    const onFileSelect = async () => {
         console.log("Selected file ID:", selectedFileId);
         console.log("Existing files:", existingFiles);
         if(!selectedFileId) return;
         const selected = existingFiles.find(file => String(file.id) === String(selectedFileId));
         if (selected) {
-            setUploadedFile(selected);
-            setShowOverlay(false);
+            try {
+                await startNewConversation(selected.id, selected.filename);
+                setUploadedFile(selected);
+                setShowOverlay(false);
+            } catch (error) {
+                console.error("Error starting conversation with selected file:", error);
+                toast.error("Failed to start conversation with selected file. Please try again.");
+            }
         }
     };
 
