@@ -5,6 +5,9 @@ from documents.routes import router as documents
 from nlp.routes import router as nlp_router
 from conversations.routes import router as conversations_router
 import traceback
+from dotenv import load_dotenv
+
+load_dotenv()
 
 from fastapi.middleware.cors import CORSMiddleware
 

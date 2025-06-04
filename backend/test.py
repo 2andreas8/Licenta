@@ -63,6 +63,7 @@ def test_nlp():
         embedding_function=embeddings
     )
     print(vectorstore.similarity_search("nota"))
-
+    
+    
 if __name__ == "__main__":
     clear_vectorstore_folder()

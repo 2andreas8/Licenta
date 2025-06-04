@@ -14,8 +14,9 @@ class MessageResponse(MessageBase):
     conversation_id: int
     timestamp: datetime
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 class ConversationBase(BaseModel):
     document_id: int
@@ -30,5 +31,6 @@ class ConversationResponse(ConversationBase):
     created_at: datetime
     messages: List[MessageResponse] = []
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }

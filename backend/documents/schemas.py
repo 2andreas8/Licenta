@@ -18,5 +18,6 @@ class DocumentResponse(DocumentBase):
     user_id: int
     filename: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
