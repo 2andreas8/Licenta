@@ -9,6 +9,8 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [conversationToDelete, setConversationToDelete] = useState(null);
 
     useEffect(() => {
         if (isOpen) {
@@ -41,17 +43,21 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
 
     const handleDeleteConversation = async (e, conversationId) => {
         e.stopPropagation(); // prevent the click event from propagating to the button
-        if (window.confirm("Are you sure you want to delete this conversation?")) {
-            try {
-                await deleteConversation(conversationId);
-                toast.success("Conversation deleted successfully");
-                loadConversations(); // reload conversations
-                navigate("/dashboard"); 
-                onClose();
-            } catch (error) {
-                console.error("Failed to delete conversation: ", error);
-                toast.error("Failed to delete conversation. Please try again later.");
-            }
+        setConversationToDelete(conversationId);
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = async () => {
+        try {
+            await deleteConversation(conversationToDelete);
+            toast.success("Conversation deleted successfully");
+            loadConversations();
+            setShowDeleteModal(false);
+            navigate("/dashboard");
+            onClose();
+        } catch (error) {
+            console.error("Failed to delete conversation: ", error);
+            toast.error("Failed to delete conversation. Please try again later.");
         }
     };
 
@@ -133,6 +139,34 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                     </div>
                 </div>
             </aside>
+
+            {/* Delete Modal */}
+            {showDeleteModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+                    <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4 dark:text-white">
+                            Delete Conversation
+                        </h3>
+                        <p className="text-gray-600 dark:text-gray-300 mb-6">
+                            Are you sure you want to delete this conversation? This action cannot be undone.
+                        </p>
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmDelete}
+                                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+                            >
+                                Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </>
     );
 }
