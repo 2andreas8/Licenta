@@ -1,6 +1,6 @@
 import os 
 from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2txtLoader
-from langchain_text_splitters import CharacterTextSplitter
+from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain_chroma import Chroma
 
@@ -34,7 +34,7 @@ async def extract_text_from_file(file):
         raise ValueError("Unsupported file type")
     
     documents = loader.load()
-    full_text =  "/n".join([doc.page_content for doc in documents])
+    full_text =  "\n".join([doc.page_content for doc in documents])
 
     # Clean up the temporary file
     os.remove(file_path)
@@ -42,13 +42,21 @@ async def extract_text_from_file(file):
     return full_text, documents
 
 def save_in_vectorstore(documents, file_id: int, user_id: int):
-    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=100, separator="\n")
+    # RercursiveCharacterTextSplitter has better performance than CharacterTextSplitter
+    text_splitter = RecursiveCharacterTextSplitter(
+        chunk_size=1000,
+        chunk_overlap=200,  # overlap for better context
+        separators=["\n\n", "\n", ".", "!", "?", ",", " ", ""],
+        length_function=len
+        )
     docs = text_splitter.split_documents(documents=documents)
 
     for idx, doc in enumerate(docs):
         doc.metadata["file_id"] = file_id
         doc.metadata["user_id"] = user_id
         doc.metadata["chunk_id"] = idx
+        doc.metadata["source"] = documents[0].metadata.get("source", "")
+        doc.metadata["chunk_size"] = len(doc.page_content)
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
 

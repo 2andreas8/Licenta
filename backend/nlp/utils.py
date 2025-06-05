@@ -22,6 +22,21 @@ def get_vectorstore_for_file(persist_dir: str):
         print("Error loading vectorstore:", e)
         raise
 
+def get_relevant_documents(vectorstore, question: str, k: int = 4):
+    """Retrieves relevant documents from the vectorstore based on the question."""
+    docs = vectorstore.similarity_search_with_relevance_scores(question, k=k)
+
+    # Filter docs based on relevance score
+    relevant_docs = [doc for doc, score in docs if score > 0.7]
+
+    if(len(relevant_docs) < 2):
+        relevant_docs = [doc for doc, score in docs]
+
+    # Sort by id for a logical order
+
+    relevant_docs.sort(key=lambda x: x.metadata.get('chunk_id', 0))
+
+    return relevant_docs
 
 def generate_answer(question: str, context: str)-> str:
     # TODO - Implement the logic to generate an answer based on the question and context
@@ -46,3 +61,89 @@ def generate_answer(question: str, context: str)-> str:
     return response.content.strip()
 
     # return f"Simulated answer for question: '{question}' based on context: '{context}'"
+
+def generate_answer_with_sources(question: str, docs: list) -> dict:
+    """Generates an answer with sources from the context."""
+    print(f"Starting generate_answer_with_sources with {len(docs)} documents")
+    
+    # Print info despre fiecare document pentru debugging
+    for i, doc in enumerate(docs):
+        print(f"Document {i}:")
+        print(f"  Type: {type(doc)}")
+        print(f"  Metadata: {doc.metadata if hasattr(doc, 'metadata') else 'No metadata'}")
+
+    context_parts = []
+    sources_info = []
+    
+    for i, doc in enumerate(docs):
+        try:
+            # Check if doc has metadata 
+            if hasattr(doc, 'metadata') and doc.metadata is not None:
+                chunk_id = doc.metadata.get('chunk_id', i)
+                file_id = doc.metadata.get('file_id', 0)
+            else:
+                chunk_id = i
+                file_id = 0
+                print(f"No metadata found for document {i}")
+
+            # Add to context with fragment number
+            context_parts.append(f"[Fragment {chunk_id}]: {doc.page_content}")
+            
+            # Add info about the source
+            sources_info.append({
+                "chunk_id": int(chunk_id), # ensure chunk_id is an int as expected in schema
+                "file_id": int(file_id),    
+                "content_preview": doc.page_content[:100] + "..."
+            })
+            
+            print(f"Processed document {i} successfully")
+            
+        except Exception as e:
+            print(f"Error processing document {i}: {e}")
+            # Use default values for errors
+            context_parts.append(f"[Fragment {i}]: {doc.page_content}")
+            sources_info.append({
+                "chunk_id": i,
+                "file_id": 0,
+                "content_preview": doc.page_content[:100] + "..."
+            })
+    
+    context = "\n\n".join(context_parts)
+    print(f"Created context with {len(context_parts)} parts")
+    
+    template = """Use the following pieces of context to answer the question at the end.
+    Mention the sources of your answer in the format [Fragment X].
+    If you don't know the answer, just say "I cannot answer based on the provided documents".
+    
+    Fragments:
+    {context}
+    
+    Question: {question}
+    
+    Answer:"""
+    
+    try:
+        prompt_template = PromptTemplate(
+            template=template,
+            input_variables=["context", "question"]
+        )
+        
+        llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+        final_prompt = prompt_template.format(context=context, question=question)
+        
+        print("Sending request to OpenAI...")
+        response = llm.invoke([HumanMessage(content=final_prompt)])
+        print("Received response from OpenAI")
+        
+        result = {
+            "answer": response.content.strip(),
+            "sources": sources_info,
+            "total_chunks_used": len(docs)
+        }
+        
+        print("Result generated successfully")
+        return result
+        
+    except Exception as e:
+        print(f"Error in LLM call: {e}")
+        raise
