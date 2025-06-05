@@ -10,8 +10,9 @@ class DocumentBrief(DocumentBase):
     id: int
     filename: str
 
-    class Config:
-        orm_mode = True
+    model_config = {
+        "from_attributes": True
+    }
 
 class DocumentResponse(DocumentBase):
     id: int

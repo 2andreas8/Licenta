@@ -15,26 +15,26 @@ async def ask_question(
     print("current_user.id =", current_user.id)
     print("file_id =", qa.file_id)
     
-    # persist_dir = os.path.abspath(f"./vectorstore/{current_user.id}/{qa.file_id}")
-    # print("persist_dir =", persist_dir)
+    persist_dir = os.path.abspath(f"./vectorstore/{current_user.id}/{qa.file_id}")
+    print("persist_dir =", persist_dir)
 
-    # try:
-    #     vectorstore = get_vectorstore_for_file(persist_dir)
-    #     print("Vectorstore loaded OK")
-    # except Exception as e:
-    #     print("Error loading vectorstore:", e)
-    #     raise HTTPException(status_code=404, detail="Vector store not found for this file.")
+    try:
+        vectorstore = get_vectorstore_for_file(persist_dir)
+        print("Vectorstore loaded OK")
+    except Exception as e:
+        print("Error loading vectorstore:", e)
+        raise HTTPException(status_code=404, detail="Vector store not found for this file.")
     
-    # result = vectorstore.similarity_search(qa.question, k=2)
-    # if not result:
-    #     raise HTTPException(status_code=404, detail="No relevant documents found.")
-    # context = "\n".join([doc.page_content for doc in result])
+    result = vectorstore.similarity_search(qa.question, k=2)
+    if not result:
+        raise HTTPException(status_code=404, detail="No relevant documents found.")
+    context = "\n".join([doc.page_content for doc in result])
 
-    # try:
-    #     answer = generate_answer(qa.question, context)
-    #     return {"answer": answer}
-    # except Exception as e:
-    #     raise HTTPException(status_code=500, detail=f"Error generating answer: {str(e)}")
+    try:
+        answer = generate_answer(qa.question, context)
+        return {"answer": answer}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error generating answer: {str(e)}")
 
-    return {"answer": f"Test response for question: {qa.question} on file ID: {qa.file_id}"}    
+    # return {"answer": f"Test response for question: {qa.question} on file ID: {qa.file_id}"}    
     

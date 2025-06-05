@@ -30,22 +30,30 @@ async def upload_document(
         raise HTTPException(status_code=400, detail="Unsupported file type.")
     try:
         text, docs = await extract_text_from_file(file)
+
+        new_document = Document(
+            filename=file.filename,
+            content=text,
+            user_id=current_user.id
+        )
+
+        db.add(new_document)
+        db.commit()
+        db.refresh(new_document)
+
+        save_in_vectorstore(docs, file_id=new_document.id, user_id=current_user.id)
+
+        return { 
+            "id": new_document.id, 
+            "user_id": new_document.user_id,
+            "filename": new_document.filename
+        }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error processing file: {str(e)}")
-
-    # Salvare document in baza de date
-    new_document = Document(
-        filename=file.filename,
-        content=text,
-        user_id=current_user.id # document asociat userului curent
-    )
-    db.add(new_document)
-    db.commit()
-    db.refresh(new_document)
-
-    save_in_vectorstore(docs, file_id=new_document.id, user_id=current_user.id)
-
-    return { "file_id": new_document.id, "filename": new_document.filename }
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Error processing file: {str(e)}"
+        )
+    
 
 @router.get("/my_files", response_model=List[schemas.DocumentBrief])
 def get_my_files(
