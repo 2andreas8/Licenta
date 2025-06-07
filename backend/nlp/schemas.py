@@ -1,9 +1,10 @@
 from pydantic import BaseModel
-from typing import List
+from typing import List, Optional
 
 class QARequest(BaseModel):
     question: str
     file_id: int
+    conversation_id: Optional[int] = None
 
 class SourceInfo(BaseModel):
     chunk_id: int

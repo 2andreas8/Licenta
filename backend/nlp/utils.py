@@ -2,7 +2,8 @@ import os
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.prompts import PromptTemplate
-from langchain.schema import HumanMessage
+from langchain.schema import HumanMessage, AIMessage
+from langchain.memory import ConversationBufferWindowMemory
 
 from dotenv import load_dotenv
 
@@ -62,9 +63,13 @@ def generate_answer(question: str, context: str)-> str:
 
     # return f"Simulated answer for question: '{question}' based on context: '{context}'"
 
-def generate_answer_with_sources(question: str, docs: list) -> dict:
+def generate_answer_with_sources(question: str, docs: list, memory=None) -> dict:
     """Generates an answer with sources from the context."""
     print(f"Starting generate_answer_with_sources with {len(docs)} documents")
+
+    print(f"Memory received: {memory is not None}")
+    if memory:
+        print(f"Memory messages count: {len(memory.chat_memory.messages)}")
     
     # Print info despre fiecare document pentru debugging
     for i, doc in enumerate(docs):
@@ -112,29 +117,58 @@ def generate_answer_with_sources(question: str, docs: list) -> dict:
     print(f"Created context with {len(context_parts)} parts")
     
     template = """Use the following pieces of context to answer the question at the end.
+    If you don't know the answer, use information from the previous conversation if relevant. If not just say "I cannot answer based on the provided documents".
     Mention the sources of your answer in the format [Fragment X].
-    If you don't know the answer, just say "I cannot answer based on the provided documents".
+    
     
     Fragments:
     {context}
+
+    Previous conversation:
+    {chat_history}
     
     Question: {question}
     
     Answer:"""
     
     try:
+        chat_history = ""
+        if memory:
+            messages = memory.chat_memory.messages
+            if messages:
+                chat_history_parts = []
+                for msg in reversed(messages):
+                    if isinstance(msg, HumanMessage):
+                        chat_history_parts.append(f"Human: {msg.content}")
+                    elif isinstance(msg, AIMessage):
+                        chat_history_parts.append(f"AI: {msg.content}")
+                        
+                chat_history = "Previous conversation:\n" + "\n".join(chat_history_parts)
+            else:
+                chat_history = ""
+        else:
+            chat_history = ""
+
         prompt_template = PromptTemplate(
             template=template,
-            input_variables=["context", "question"]
+            input_variables=["context", "question", "chat_history"]
         )
         
         llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
-        final_prompt = prompt_template.format(context=context, question=question)
+        final_prompt = prompt_template.format(
+            context=context, 
+            question=question,
+            chat_history=chat_history    
+        )
         
         print("Sending request to OpenAI...")
         response = llm.invoke([HumanMessage(content=final_prompt)])
         print("Received response from OpenAI")
         
+        if memory:
+            memory.chat_memory.add_user_message(question)
+            memory.chat_memory.add_ai_message(response.content.strip())
+
         result = {
             "answer": response.content.strip(),
             "sources": sources_info,
