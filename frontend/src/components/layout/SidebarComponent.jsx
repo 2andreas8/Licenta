@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { fetchConversations } from '../../services/conversationsService';
 import { toast } from 'react-toastify';
-import { deleteConversation } from '../../services/conversationsService';
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { deleteConversation, updateConversationTitle } from '../../services/conversationsService';
+import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 
 export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
@@ -11,6 +11,9 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const [loading, setLoading] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [conversationToDelete, setConversationToDelete] = useState(null);
+    const [showRenameModal, setShowRenameModal] = useState(false);
+    const [conversationToRename, setConversationToRename] = useState(null);
+    const [newTitle, setNewTitle] = useState("");
 
     useEffect(() => {
         if (isOpen) {
@@ -58,6 +61,25 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
         } catch (error) {
             console.error("Failed to delete conversation: ", error);
             toast.error("Failed to delete conversation. Please try again later.");
+        }
+    };
+
+    const handleRenameConversation = (e, conversation) => {
+        e.stopPropagation();
+        setConversationToRename(conversation);
+        setNewTitle(conversation.title || "Untitled Conversation");
+        setShowRenameModal(true);
+    };
+
+    const confirmRename = async () => {
+        try {
+            await updateConversationTitle(conversationToRename.id, newTitle);
+            toast.success("Conversation renamed successfully");
+            loadConversations();
+            setShowRenameModal(false);
+        } catch (error) {
+            console.error("Failed to rename conversation: ", error);
+            toast.error("Failed to rename conversation. Please try again later.");
         }
     };
 
@@ -124,6 +146,13 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                                         {conv.title || "Untitled Conversation"}
                                     </button>
                                     <button
+                                        onClick={(e) => handleRenameConversation(e, conv)}
+                                        className='px-2 py-2 text-purple-300 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                    >
+                                        <PencilIcon className='h-4 w-4' aria-hidden="true" />
+                                        <span className='sr-only'>Rename Conversation</span>
+                                    </button>
+                                    <button
                                         onClick={(e) => handleDeleteConversation(e, conv.id)}
                                         className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
                                     >
@@ -162,6 +191,44 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                                 className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
                             >
                                 Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {/* Rename Modal */}
+            {showRenameModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
+                    <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                        <h3 className="text-lg font-semibold mb-4 dark:text-white">
+                            Rename Conversation
+                        </h3>
+                        <div className='mb-4'>
+                            <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="conversationTitle">
+                                New Title:
+                            </label>
+                            <input
+                                type="text"
+                                id="conversationTitle"
+                                value={newTitle}
+                                onChange={(e) => setNewTitle(e.target.value)}
+                                className="w-full px-3 py-2 border dark:bg-neutral-700 border-gray-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
+                            />
+                        </div>
+                        
+                        <div className="flex justify-end space-x-3">
+                            <button
+                                onClick={() => setShowRenameModal(false)}
+                                className="px-4 py-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={confirmRename}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                                disabled={!newTitle.trim()}
+                            >
+                                Rename
                             </button>
                         </div>
                     </div>

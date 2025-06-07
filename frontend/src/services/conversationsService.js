@@ -120,4 +120,25 @@ export const deleteConversation = async (conversationId) => {
     }
 };
 
+export const updateConversationTitle = async (conversationId, newTitle) => {
+    const token = sessionStorage.getItem("access_token");
+    if (!token) {
+        throw new Error("No token found");
+    }
+
+    try {
+        const response = await axios.patch(
+            `${CONVERSATIONS_API_URL}/${conversationId}`,
+            { title: newTitle },
+            { headers: { Authorization: `Bearer ${token}` } }
+        );
+        return response.data;
+    } catch (error) {
+        if ( error.response?.status === 401) {
+            throw new Error("Session expired. Please log in again.");
+        }
+        throw error.response?.data?.detail || error.message || "Unknown error";
+    }
+};
+
 
