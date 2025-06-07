@@ -116,3 +116,26 @@ async def delete_conversation(
     db.delete(conversation)
     db.commit()
     return conversation
+
+@router.patch("/{conversation_id}", response_model=schemas.ConversationResponse)
+async def update_conversation(
+    conversation_id: int,
+    conversation_update: schemas.ConversationUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # check if conv exists and belongs to the user
+    conversation = db.query(models.Conversation).filter(
+        models.Conversation.id == conversation_id,
+        models.Conversation.user_id == current_user.id
+    ).first()
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+    
+    # update title if provided
+    if conversation_update.title:
+        conversation.title = conversation_update.title
+
+    db.commit()
+    db.refresh(conversation)
+    return conversation

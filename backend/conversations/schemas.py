@@ -34,3 +34,6 @@ class ConversationResponse(ConversationBase):
     model_config = {
         "from_attributes": True
     }
+
+class ConversationUpdate(BaseModel):
+    title: Optional[str] = None
