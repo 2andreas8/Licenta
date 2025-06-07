@@ -157,7 +157,8 @@ export default function NewChatComponent() {
 
             const res = await askQuestion({ 
                 question: userInput, 
-                fileId: uploadedFile.id 
+                fileId: uploadedFile.id, 
+                conversationId: currentConversation.id
             });
 
             const assistantMessage = {role: "assistant", content: res.answer};

@@ -50,7 +50,8 @@ export default function ExistingChatComponent({ conversationId }) {
             await addMessageToConversation(conversationId, userMessage.content, userMessage.role);
             const response = await askQuestion({
                 question: userMessage.content,
-                fileId: uploadedFile.id
+                fileId: uploadedFile.id,
+                conversationId: conversationId
             });
 
             const assistantMessage = { role: 'assistant', content: response.answer };
