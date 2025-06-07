@@ -24,7 +24,8 @@ async def extract_text_from_file(file):
     elif file.content_type == "text/plain":
         with open(file_path, "r") as f:
             # text = f.read()
-            loader = TextLoader(file_path)
+            # loader = TextLoader(file_path)
+            loader = TextLoader(file_path, encoding="utf-8") # utf-8 encoding supports special characters
     elif file.content_type == "application/vnd.openxmlformats-officedocument.wordprocessingml.document":
         # doc = Document(file_path)
         # text = " ".join([para.text for para in doc.paragraphs])
