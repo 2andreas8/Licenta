@@ -4,6 +4,13 @@ import { toast } from "react-toastify";
 import { fetchUserDocuments } from "../../services/documentService";
 import { askQuestion } from "../../services/chatService";
 import { createConversation, addMessageToConversation } from "../../services/conversationsService";
+import { Document, Page, pdfjs } from "react-pdf";
+// local worker for PDF.js
+//pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
+// Adaugă acest cod temporar pentru a afla versiunea exactă necesară
+console.log("PDF.js version needed:", pdfjs.version);
+
+pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
 
 export default function NewChatComponent() {
     const [file, setFile] = useState(null);
@@ -21,6 +28,12 @@ export default function NewChatComponent() {
     const messagesEndRef = useRef(null);
 
     const [currentConversation, setCurrentConversation] = useState(null);
+
+    // states for previewing pdf
+    const [preview, setPreview] = useState(null);
+    const [numPages, setNumPages] = useState(null);
+    const [pageNumber, setPageNumber] = useState(1);
+    const [uploadProgress, setUploadProgress] = useState(0);
 
     useEffect(() => {
     if (messagesEndRef.current) {
@@ -46,7 +59,35 @@ export default function NewChatComponent() {
     };
 
     const handleFileChange = (e) => {
-        setFile(e.target.files[0]);
+        const selectedFile = e.target.files[0];
+        setFile(selectedFile);
+
+        if (!selectedFile) {
+            setPreview(null);
+            return;
+        }
+
+        if (selectedFile.type === "text/plain") {
+            const reader = new FileReader();
+            reader.onload = (e)  => setPreview({
+                type: "text",
+                content: e.target.result
+            });
+            reader.readAsText(selectedFile);
+        }
+        else if (selectedFile.type === "application/pdf") {
+            const url = URL.createObjectURL(selectedFile);
+            setPreview({
+                type: "pdf",
+                url: url
+            });
+        }
+        else if (selectedFile.type.includes("word") || selectedFile.type.endsWith("docx")) {
+            setPreview({
+                type: "docx",
+                name: selectedFile.name
+            });
+        }
     };
 
     const onClose = () => {
@@ -61,16 +102,41 @@ export default function NewChatComponent() {
         }
         
         setLoading(true);
-        try {
-            const result = await uploadDocument(file);
-            await startNewConversation(result.id, result.filename);
-            toast.success("File uploaded successfully!");
-            setUploadedFile(result);
-        } catch (error) {
-            toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
-        } finally {
-            setLoading(false);
-        }
+        setUploadProgress(0);
+
+        const uploadWithProgress = async () => {
+            try {
+                const progressInterval = setInterval(() => {
+                    setUploadProgress(prev => {
+                        if (prev >= 90) {
+                            clearInterval(progressInterval);
+                            return 90;
+                        }
+                        return prev + 10;
+                    });
+                }, 300);
+
+                const result = await uploadDocument(file);
+                clearInterval(progressInterval);
+                setUploadProgress(100);
+
+                await startNewConversation(result.id, result.filename);
+                toast.success("File uploaded successfully!");
+                setUploadedFile(result);
+
+                if (preview && preview.type === "pdf" && preview.url) {
+                    URL.revokeObjectURL(preview.url);
+                }
+                setPreview(null);
+
+            } catch (error) {
+                toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        uploadWithProgress();
     };
 
     const handleSend = async (e) => {
@@ -225,21 +291,101 @@ export default function NewChatComponent() {
                 &times;
             </button>
             <h2 className="text-2xl font-bold mb-6 text-gray-900">Start a new chat</h2>
-            {/* Upload Form */}
+            {/* Upload Form with Preview */}
             <form onSubmit={handleSubmit} className="w-full flex flex-col items-center mb-6">
                 <label className="font-semibold text-gray-700 mb-2 w-full text-left">
                 Upload a new file
                 </label>
-                <input
-                type="file"
-                accept=".pdf,.docx,.txt"
-                onChange={handleFileChange}
-                className="mb-4 w-full"
-                />
+                {/* File Input */}
+                <div className="w-full mb-4">
+                    <label 
+                        className="block w-full px-4 py-3 text-center border-2 border-dashed rounded-lg border-purple-300 hover:border-purple-500 cursor-pointer bg-purple-50 transition"
+                    >
+                        <span className="text-purple-600">Choose a file or drag & drop</span>
+                        <input
+                            type="file"
+                            accept=".pdf,.docx,.txt"
+                            onChange={handleFileChange}
+                            className="hidden"
+                        />
+                        {file && (
+                            <p className="mt-2 text-sm text-gray-600 truncate">
+                                Selected: {file.name}
+                            </p>
+                        )}
+                    </label>
+                </div>
+                {/* Document Preview */}
+                {preview && (
+                    <div className="my-4 w-full border rounded-lg p-4 bg-gray-50 max-h-64 overflow-auto">
+                        <h3 className="text-md font-semibold mb-2 text-gray-700">Preview:</h3>
+                        {preview.type === "text" && (
+                            <div className="whitespace-pre-wrap text-sm font-mono text-gray-700">
+                                {preview.content.slice(0, 500)}
+                                {preview.content.length > 500 && "..."}
+                            </div>
+                        )}
+                        {preview.type === "pdf" && (
+                            <div className="flex flex-col items-center">
+                                <Document
+                                    file={preview.url}
+                                    onLoadSuccess={({ numPages }) => setNumPages(numPages)}
+                                    className="w-full"
+                                >
+                                    <Page pageNumber={pageNumber} width={300} />
+                                </Document>
+
+                                {numPages > 1 && (
+                                    <div className="flex items-center gap-2 mt-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setPageNumber(Math.max(1, pageNumber - 1))}
+                                            className="px-2 py-1 bg-purple-600 text-white rounded disabled:bg-gray-400"
+                                            disabled={pageNumber <= 1}
+                                        >
+                                            ◀
+                                        </button>
+                                        <span className="text-sm">
+                                            Page {pageNumber} of {numPages}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setPageNumber(Math.min(numPages, pageNumber + 1))}
+                                            className="px-2 py-1 bg-purple-600 text-white rounded disabled:bg-gray-400"
+                                            disabled={pageNumber >= numPages}
+                                        >
+                                            ▶
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        {preview.type === 'docx' && (
+                            <div className="text-center text-gray-600">
+                                <p>Preview not available for DOCX files</p>
+                                <p className="text-sm mt-1">Selected: {preview.name}</p>
+                            </div>
+                        )}
+                    </div>
+                )}
+                {/* Upload Progeress */}
+                {loading && (
+                    <div className="w-full mt-2 mb-4">
+                        <div className="w-full bg-gray-200 rounded-full h-2.5">
+                            <div 
+                            className="bg-purple-600 h-2.5 rounded-full" 
+                            style={{ width: `${uploadProgress}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-xs text-center mt-1 text-gray-600">
+                            {uploadProgress < 100 ? `Uploading: ${uploadProgress}%` : 'Processing...'}
+                        </p>
+                    </div>
+                )}
                 <button
                 type="submit"
                 className="bg-purple-600 text-white px-6 py-3 w-full rounded hover:bg-purple-700 transition-colors"
-                disabled={loading}
+                disabled={loading || !file}
                 >
                 {loading ? "Uploading..." : "Upload and Start Chat"}
                 </button>
