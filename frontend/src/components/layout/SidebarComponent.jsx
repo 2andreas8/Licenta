@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { deleteConversation, updateConversationTitle } from '../../services/conversationsService';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 
-export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
+export default  function SidebarComponent({ isOpen, onClose, setDocs, refreshTrigger }) {
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,10 +16,10 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const [newTitle, setNewTitle] = useState("");
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen || refreshTrigger > 0) {
             loadConversations();
         }
-    }, [isOpen]);
+    }, [isOpen, refreshTrigger]);
 
     const loadConversations = async () => {
         setLoading(true);
