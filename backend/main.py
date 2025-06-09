@@ -4,6 +4,7 @@ from auth.routes import router as auth_router
 from documents.routes import router as documents
 from nlp.routes import router as nlp_router
 from conversations.routes import router as conversations_router
+from analytics.routes import router as analytics_router
 import traceback
 from dotenv import load_dotenv
 
@@ -26,6 +27,7 @@ app.include_router(auth_router)
 app.include_router(documents)
 app.include_router(nlp_router)
 app.include_router(conversations_router)
+app.include_router(analytics_router)
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
