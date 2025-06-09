@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import ProfileComponent from './components/profile/ProfileComponent'
 import ChatContainer from './components/chat/ChatContainer';
 import Layout from './components/layout/Layout';
+import StatisticsPageComponent from './components/statistics/StatisticsPageComponent';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { getCurrentUser } from './services/authService';
@@ -51,6 +52,13 @@ export default function App() {
           <AuthenticatedRoute>
             <Layout>
               <ChatContainer />
+            </Layout>
+          </AuthenticatedRoute>
+        }></Route>
+        <Route path="/statistics" element={
+          <AuthenticatedRoute>
+            <Layout>
+              <StatisticsPageComponent />
             </Layout>
           </AuthenticatedRoute>
         }></Route>

@@ -50,6 +50,11 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
         setShowDeleteModal(true);
     };
 
+    const handleNavigateToStats = () => {
+        navigate("/statistics");
+        onClose();
+    }
+
     const confirmDelete = async () => {
         try {
             await deleteConversation(conversationToDelete);
@@ -119,6 +124,12 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                     onClick={handleDashboardNavigate}    
                     >
                         Dashboard
+                    </button>
+                    <button 
+                        className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                        onClick={handleNavigateToStats}    
+                    >
+                        📊 Statistics
                     </button>
                 </nav>
 
