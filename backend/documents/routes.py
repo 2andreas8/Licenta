@@ -2,8 +2,9 @@ from fastapi import APIRouter, UploadFile, File, HTTPException, UploadFile, Depe
 from sqlalchemy.orm import Session
 from typing import List
 from documents import schemas
-from documents.utils import extract_text_from_file, save_in_vectorstore
+from documents.utils import extract_text_from_file, save_in_vectorstore, delete_from_vectorstore
 from documents.models import Document
+from conversations.models import Conversation
 from database.db import SessionLocal
 from auth.security import get_current_user
 
@@ -80,3 +81,48 @@ async def get_document(
         raise HTTPException(status_code=404, detail="Document not found")
     
     return document
+
+
+@router.delete("/{document_id}", response_model=schemas.DocumentResponse)
+async def delete_document(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    try:
+        document = db.query(Document).filter(
+            Document.id == document_id,
+            Document.user_id == current_user.id
+        ).first()
+
+        if not document:
+            raise HTTPException(status_code=404, detail="Document not found")
+        
+        try: 
+            delete_from_vectorstore(document_id, current_user.id)
+        except Exception as e:
+            print(f"Error deleting from vector store: {e}")
+            # continue with document deletion from database
+    
+        conversations = db.query(Conversation).filter(
+            Conversation.document_id == document_id,
+            Conversation.user_id == current_user.id
+        ).all()
+
+        for conv in conversations:
+            db.delete(conv)
+
+        db.delete(document)
+        db.commit()
+
+        return document
+    except HTTPException as http_e:
+        raise http_e
+    except Exception as e:
+        db.rollback()
+        print(f"Unexpected error deleting document: {str(e)}")
+        raise HTTPException(
+            status_code=500, 
+            detail=f"Unexpected error deleting document: {str(e)}"
+        )
+

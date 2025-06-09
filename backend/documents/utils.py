@@ -3,6 +3,7 @@ from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2t
 from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain_chroma import Chroma
+import shutil
 
 from dotenv import load_dotenv
 
@@ -76,3 +77,13 @@ def save_in_vectorstore(documents, file_id: int, user_id: int):
         print(f"Documents saved in vector store at {persist_dir}")
     except Exception as e:
         print(f"Error saving documents to vector store: {e}")
+
+def delete_from_vectorstore(file_id: int, user_id: int):
+    persist_dir = f"./vectorstore/{user_id}/{file_id}"
+    if os.path.exists(persist_dir):
+        shutil.rmtree(persist_dir)
+        print(f"Deleted vector store at {persist_dir}")
+        return True
+    else: 
+        print(f"Vector store at {persist_dir} does not exist.")
+        return False
