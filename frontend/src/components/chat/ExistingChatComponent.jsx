@@ -68,74 +68,72 @@ export default function ExistingChatComponent({ conversationId }) {
 
     return (
         // ————————————— Outer wrapper (o singură dată h-screen) —————————————
-        <div className="h-full w-full bg-gradient-to-b from-purple-800 to-purple-900 flex items-center justify-center">
-            {/* ————————— Chat-card fix, 90vh înălțime ————————— */}
-            <div className="w-full max-w-3xl h-[85vh] flex flex-col rounded-2xl shadow-xl bg-purple-800/60 backdrop-blur-md border border-white/20 overflow-hidden">
-                {/* ——— 1) Header ——— */}
-                <div className="px-6 py-4 text-lg font-semibold text-white">
-                    {uploadedFile
-                        ? <>Chat about: <span className="text-purple-200">{uploadedFile.title}</span></>
-                        : <>No file uploaded yet</>
-                    }
-                </div>
+        <div className="w-full max-w-3xl flex flex-col rounded-2xl shadow-xl bg-purple-800/60 backdrop-blur-md border border-white/20 overflow-hidden m-auto h-[80vh] max-h-[800px]">
 
-                {/* ——— 2) Mesaje + footer ——— */}
-                <div className="flex flex-1 flex-col min-h-0">
-                    {/* — 2a) Zona de mesaje cu scroll intern — */}
-                    <div className="flex-1 overflow-y-auto px-8 pt-2 pb-4 min-h-0">
-                        {messages.length === 0 && (
-                            <div className="text-gray-300 text-center mt-8">
-                                Start the conversation about your document!
-                            </div>
-                        )}
-                        {messages.map((msg, index) => (
-                            <div
-                                key={index}
-                                className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
-                            >
-                                <div className="flex items-end gap-2">
-                                    {msg.role === "assistant" && <span className="text-2xl">🤖</span>}
-                                    <div className={`px-5 py-3 rounded-xl max-w-xl ${msg.role === "user" ? "bg-purple-600 text-white" : "bg-white text-gray-900"
-                                        }`}>
-                                        {msg.content}
-                                    </div>
-                                    {msg.role === "user" && <span className="text-2xl">🙂</span>}
-                                </div>
-                            </div>
-                        ))}
-                        {waitingForAnswer && (
-                            <div className="mb-3 flex justify-start">
-                                <div className="flex items-end gap-2">
-                                    <span className="text-2xl">🤖</span>
-                                    <div className="px-5 py-3 rounded-xl max-w-xl bg-purple-800 text-white animate-pulse">
-                                        Thinking...
-                                    </div>
-                                </div>
-                            </div>
-                        )}
+            {/* ——— 1) Header ——— */}
+            <div className="px-6 py-4 text-lg font-semibold text-white border-b border-white/10">
+                {uploadedFile
+                    ? <>Chat about: <span className="text-purple-200">{uploadedFile.title}</span></>
+                    : <>No file uploaded yet</>
+                }
+            </div>
 
-                        <div ref={messagesEndRef} />
-                    </div>
-
-                    {/* — 2b) Footer-ul cu input și buton — */}
-                    <form onSubmit={handleSend} className="bg-purple-900/40 px-6 py-4 flex gap-3">
-                        <input
-                            type="text"
-                            value={input}
-                            onChange={e => setInput(e.target.value)}
-                            className="flex-1 border border-purple-400 rounded-lg px-4 py-3 bg-white/80 text-gray-900"
-                            placeholder={uploadedFile ? "Type your question..." : "Upload a file to start chatting..."}
-                            disabled={!uploadedFile}
-                        />
-                        <button
-                            type="submit"
-                            className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
-                            disabled={!uploadedFile || !input.trim()}
+            {/* ——— 2) Mesaje + footer ——— */}
+            <div className="flex flex-1 flex-col min-h-0">
+                {/* — 2a) Zona de mesaje cu scroll intern — */}
+                <div className="flex-1 overflow-y-auto px-8 pt-2 pb-4 min-h-0">
+                    {messages.length === 0 && (
+                        <div className="text-gray-300 text-center mt-8">
+                            Start the conversation about your document!
+                        </div>
+                    )}
+                    {messages.map((msg, index) => (
+                        <div
+                            key={index}
+                            className={`mb-3 flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
                         >
-                            Send
-                        </button>
-                    </form>
+                            <div className="flex items-end gap-2">
+                                {msg.role === "assistant" && <span className="text-2xl">🤖</span>}
+                                <div className={`px-5 py-3 rounded-xl max-w-xl ${msg.role === "user" ? "bg-purple-600 text-white" : "bg-white text-gray-900"
+                                    }`}>
+                                    {msg.content}
+                                </div>
+                                {msg.role === "user" && <span className="text-2xl">🙂</span>}
+                            </div>
+                        </div>
+                    ))}
+                    {waitingForAnswer && (
+                        <div className="mb-3 flex justify-start">
+                            <div className="flex items-end gap-2">
+                                <span className="text-2xl">🤖</span>
+                                <div className="px-5 py-3 rounded-xl max-w-xl bg-purple-800 text-white animate-pulse">
+                                    Thinking...
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    <div ref={messagesEndRef} />
                 </div>
+
+                {/* — 2b) Footer-ul cu input și buton — */}
+                <form onSubmit={handleSend} className="bg-purple-900/40 px-6 py-4 flex gap-3">
+                    <input
+                        type="text"
+                        value={input}
+                        onChange={e => setInput(e.target.value)}
+                        className="flex-1 border border-purple-400 rounded-lg px-4 py-3 bg-white/80 text-gray-900"
+                        placeholder={uploadedFile ? "Type your question..." : "Upload a file to start chatting..."}
+                        disabled={!uploadedFile}
+                    />
+                    <button
+                        type="submit"
+                        className="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700"
+                        disabled={!uploadedFile || !input.trim()}
+                    >
+                        Send
+                    </button>
+                </form>
             </div>
         </div>
     )

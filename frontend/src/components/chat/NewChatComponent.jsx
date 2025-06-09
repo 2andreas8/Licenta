@@ -198,11 +198,10 @@ export default function NewChatComponent() {
     };
 
     return (
-    // ————————————— Outer wrapper (o singură dată h-screen) —————————————
-    <div className="h-full w-full bg-gradient-to-b from-purple-800 to-purple-900 flex items-center justify-center">
-        {/* ————————— Chat-card fix, 90vh înălțime ————————— */}
-        <div className="w-full max-w-3xl h-[85vh] flex flex-col rounded-2xl shadow-xl bg-purple-800/60 backdrop-blur-md border border-white/20 overflow-hidden">
-        {/* ——— 1) Header ——— */}
+    <>
+        {/* ————————— Chat-card ————————— */}
+        <div className="w-full max-w-3xl flex flex-col rounded-2xl shadow-xl bg-purple-800/60 backdrop-blur-md border border-white/20 overflow-hidden m-auto">
+        {/* ——— Header ——— */}
         <div className="px-6 py-4 text-lg font-semibold text-white">
             {uploadedFile 
             ? <>Chat about: <span className="text-purple-200">{uploadedFile.filename}</span></>
@@ -430,6 +429,6 @@ export default function NewChatComponent() {
             </div>
         </div>
         )}
-    </div>
+    </>
     )
 }

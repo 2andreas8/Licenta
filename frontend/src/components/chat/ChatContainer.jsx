@@ -5,9 +5,13 @@ import ExistingChatComponent from "./ExistingChatComponent";
 export default function ChatContainer() {
     const { conversationId } = useParams();
 
-    if (!conversationId || conversationId === "new") {
-        return <NewChatComponent />;
-    }
-
-    return <ExistingChatComponent conversationId={conversationId} />;
+    return (
+        <div className="flex-1 flex items-center justify-center py-4 w-full h-full overflow-hidden">
+            {!conversationId || conversationId === "new" ? (
+                <NewChatComponent />
+            ) : (
+                <ExistingChatComponent conversationId={conversationId} />
+            )}
+        </div>
+    );
 }

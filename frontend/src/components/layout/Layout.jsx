@@ -10,7 +10,7 @@ export default function Layout({ children }) {
     const [showDocs, setShowDocs] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex h-screen overflow-hidden">
       <div className="flex flex-col flex-1">
         <HeaderComponent 
             onShowProfile={() => setShowProfile(true)}
@@ -22,7 +22,7 @@ export default function Layout({ children }) {
             onClose={() => setSidebarOpen(false)}
             setDocs={setShowDocs}
         />
-        <main className="flex min-h-screen bg-gradient-to-b from-purple-700 to-purple-900">
+        <main className="flex flex-1 overflow-y-auto bg-gradient-to-b from-purple-700 to-purple-900">
           {children}
         </main>
         {showProfile && (
