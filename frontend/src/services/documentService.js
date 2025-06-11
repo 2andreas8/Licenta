@@ -2,30 +2,65 @@ import axios from "axios";
 
 const DOCUMENTS_API_URL = "http://localhost:8000/documents";
 
-export const uploadDocument = async (file) => {
+// export const uploadDocument = async (file, onProgressUpdate) => {
+//     const token = sessionStorage.getItem('access_token');
+//     if (!token) {
+//         throw new Error('No token found');
+//     }
+
+//     const formData = new FormData();
+//     formData.append('file', file);
+
+//     try {
+//         const res = await axios.post(`${DOCUMENTS_API_URL}/upload`, formData, {
+//             headers: {
+//                 "Content-Type": "multipart/form-data",
+//                 Authorization: `Bearer ${token}`
+//             },
+//         });
+//         return res.data;
+//     } catch (error) {
+//         if (error.response?.status === 401) {
+//             throw new Error("Session expired. Please log in again.");
+//         }
+
+//         throw error.response?.data?.detail || error.message || "Unknown error";
+//     }
+// };
+
+export const uploadDocument = async (file, onProgressUpdate) => {
     const token = sessionStorage.getItem('access_token');
     if (!token) {
         throw new Error('No token found');
     }
 
-    const formData = new FormData();
-    formData.append('file', file);
+  const formData = new FormData();
+  formData.append('file', file);
 
-    try {
-        const res = await axios.post(`${DOCUMENTS_API_URL}/upload`, formData, {
-            headers: {
-                "Content-Type": "multipart/form-data",
-                Authorization: `Bearer ${token}`
-            },
-        });
-        return res.data;
-    } catch (error) {
-        if (error.response?.status === 401) {
-            throw new Error("Session expired. Please log in again.");
+  try {
+    const config = {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'Authorization': `Bearer ${token}`
+      },
+      onUploadProgress: (progressEvent) => {
+        const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+        if (onProgressUpdate) {
+          onProgressUpdate(percentCompleted);
         }
+      }
+    };
 
-        throw error.response?.data?.detail || error.message || "Unknown error";
+    const response = await axios.post(`${DOCUMENTS_API_URL}/upload`, formData, config);
+    return response.data;
+  } catch (error) {
+    console.error("Upload error:", error);
+    if (error.response?.status === 401) {
+      throw new Error("Session expired. Please log in again.");
     }
+
+    throw error.response?.data?.detail || error.message || "Unknown error";
+  }
 };
 
 export const fetchUserDocuments = async() => {
@@ -72,5 +107,25 @@ export const deleteDocument = async (documentId) => {
 
         throw error.response?.data?.detail || error.message || "Unknown error";
     }
-}
+};
+
+export const checkDocumentStatus = async (documentId) => {
+    const token = sessionStorage.getItem('access_token');
+    if (!token) {
+        throw new Error("No token found");
+    }
+
+    try {
+        const res = await axios.get(`${DOCUMENTS_API_URL}/${documentId}/status`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return res.data;
+    } catch (error) {
+        if (error.response?.status === 401) {
+            throw new Error("Session expired. Please log in again.");
+        }
+
+        throw error.response?.data?.detail || error.message || "Unknown error";
+    }
+};
 

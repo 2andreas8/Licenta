@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { uploadDocument } from "../../services/documentService";
+import { uploadDocument, checkDocumentStatus } from "../../services/documentService";
 import { toast } from "react-toastify";
 import { fetchUserDocuments } from "../../services/documentService";
 import { askQuestion } from "../../services/chatService";
@@ -94,6 +94,51 @@ export default function NewChatComponent() {
         setShowOverlay(false);
     }
 
+    // const handleSubmit = async (e) => {
+    //     e.preventDefault();
+    //     if (!file) {
+    //         alert("Please select a file first!");
+    //         return;
+    //     }
+        
+    //     setLoading(true);
+    //     setUploadProgress(0);
+
+    //     const uploadWithProgress = async () => {
+    //         try {
+    //             const progressInterval = setInterval(() => {
+    //                 setUploadProgress(prev => {
+    //                     if (prev >= 90) {
+    //                         clearInterval(progressInterval);
+    //                         return 90;
+    //                     }
+    //                     return prev + 10;
+    //                 });
+    //             }, 300);
+
+    //             const result = await uploadDocument(file);
+    //             clearInterval(progressInterval);
+    //             setUploadProgress(100);
+
+    //             await startNewConversation(result.id, result.filename);
+    //             toast.success("File uploaded successfully!");
+    //             setUploadedFile(result);
+
+    //             if (preview && preview.type === "pdf" && preview.url) {
+    //                 URL.revokeObjectURL(preview.url);
+    //             }
+    //             setPreview(null);
+
+    //         } catch (error) {
+    //             toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
+    //         } finally {
+    //             setLoading(false);
+    //         }
+    //     };
+
+    //     uploadWithProgress();
+    // };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!file) {
@@ -103,40 +148,59 @@ export default function NewChatComponent() {
         
         setLoading(true);
         setUploadProgress(0);
+        let documentId = null;
 
-        const uploadWithProgress = async () => {
-            try {
-                const progressInterval = setInterval(() => {
-                    setUploadProgress(prev => {
-                        if (prev >= 90) {
-                            clearInterval(progressInterval);
-                            return 90;
-                        }
-                        return prev + 10;
-                    });
-                }, 300);
+        try {
+            const uploadProgressHandler = (progress) => {
+                setUploadProgress(Math.min(progress, 90));
+            };
 
-                const result = await uploadDocument(file);
-                clearInterval(progressInterval);
-                setUploadProgress(100);
+            const result = await uploadDocument(file, uploadProgressHandler);
+            documentId = result.id;
 
-                await startNewConversation(result.id, result.filename);
-                toast.success("File uploaded successfully!");
-                setUploadedFile(result);
+            let processingComplete = false;
+            let attemps = 0;
+            const maxAttempts = 30;
 
-                if (preview && preview.type === "pdf" && preview.url) {
-                    URL.revokeObjectURL(preview.url);
+            const checkStatus = async () => {
+                if (processingComplete || attemps >= maxAttempts) return;
+
+                attemps++;
+                try {
+                    const statusResult = await checkDocumentStatus(documentId);
+
+                    if (statusResult.processingComplete) {
+                        processingComplete = true;
+                        setUploadProgress(100);
+
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+
+                        await startNewConversation(documentId, result.filename);
+                        setUploadedFile(result);
+                        toast.success("File uploaded and processed successfully!");
+                    } else {
+                        const processingProgress = 90 + Math.min(9, attemps);
+                        setUploadProgress(processingProgress);
+                        setTimeout(checkStatus, 1000);
+                    }
+                } catch (error) {
+                    console.error("Error checking document status:", error);
+                    toast.error("Error checking document processing status");
+                    setUploadProgress(90);
                 }
-                setPreview(null);
+            };
 
-            } catch (error) {
-                toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
-            } finally {
-                setLoading(false);
+            checkStatus();
+
+            if(preview && preview.type === "pdf" && preview.url) {
+                URL.revokeObjectURL(preview.url);
             }
-        };
-
-        uploadWithProgress();
+            setPreview(null);
+        } catch (error) {
+            console.error("Upload error:", error);
+            setLoading(false);
+            toast.error(error?.response?.data?.detail || error.message || "Upload failed. Please try again.");
+        }
     };
 
     const handleSend = async (e) => {
@@ -370,17 +434,21 @@ export default function NewChatComponent() {
                 )}
                 {/* Upload Progeress */}
                 {loading && (
-                    <div className="w-full mt-2 mb-4">
-                        <div className="w-full bg-gray-200 rounded-full h-2.5">
-                            <div 
-                            className="bg-purple-600 h-2.5 rounded-full" 
-                            style={{ width: `${uploadProgress}%` }}
-                            ></div>
-                        </div>
-                        <p className="text-xs text-center mt-1 text-gray-600">
-                            {uploadProgress < 100 ? `Uploading: ${uploadProgress}%` : 'Processing...'}
-                        </p>
+                <div className="w-full mt-2 mb-4">
+                    <div className="w-full bg-gray-200 rounded-full h-2.5">
+                    <div 
+                        className="bg-purple-600 h-2.5 rounded-full transition-all duration-300" 
+                        style={{ width: `${uploadProgress}%` }}
+                    ></div>
                     </div>
+                    <p className="text-xs text-center mt-1 text-gray-600">
+                    {uploadProgress < 90 
+                        ? `Uploading: ${uploadProgress}%`
+                        : uploadProgress < 100
+                            ? 'Processing document...'
+                            : 'Upload complete!'}
+                    </p>
+                </div>
                 )}
                 <button
                 type="submit"
