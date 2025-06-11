@@ -8,7 +8,6 @@ class DocumentCreate(DocumentBase):
 
 class DocumentBrief(DocumentBase):
     id: int
-    filename: str
 
     model_config = {
         "from_attributes": True
@@ -17,8 +16,17 @@ class DocumentBrief(DocumentBase):
 class DocumentResponse(DocumentBase):
     id: int
     user_id: int
-    filename: str
 
     model_config = {
         "from_attributes": True
     }
+
+class DocumentStatus(DocumentBase):
+    id: int
+    processingComplete: bool
+    status: str
+    
+    model_config = {
+        "from_attributes": True
+    }
+    

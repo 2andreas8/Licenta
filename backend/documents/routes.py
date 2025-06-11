@@ -8,6 +8,8 @@ from conversations.models import Conversation
 from database.db import SessionLocal
 from auth.security import get_current_user
 
+import os
+
 router = APIRouter(prefix="/documents", tags=["Documents"])
 
 def get_db():
@@ -125,4 +127,30 @@ async def delete_document(
             status_code=500, 
             detail=f"Unexpected error deleting document: {str(e)}"
         )
+    
+@router.get("/{document_id}/status", response_model=schemas.DocumentStatus)
+async def check_document_status(
+    document_id: int,
+    db: Session = Depends(get_db),
+    current_user = Depends(get_current_user)
+):
+    document = db.query(Document).filter(
+        Document.id == document_id,
+        Document.user_id == current_user.id
+    ).first()
+
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found")
+    
+    vector_path = f"./vectorstore/{current_user.id}/{document_id}"
+    exists = os.path.exists(vector_path)
+
+    return {
+        "id": document.id,
+        "filename": document.filename,
+        "processingComplete": exists,
+        "status": "complete" if exists else "processing"
+    }
+
+
 
