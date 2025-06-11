@@ -7,7 +7,7 @@ import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
 import EventBus from '../../services/EventBus';
 import { EVENTS } from '../../services/events';
 
-export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
+export default function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,6 +16,8 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const [showRenameModal, setShowRenameModal] = useState(false);
     const [conversationToRename, setConversationToRename] = useState(null);
     const [newTitle, setNewTitle] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filteredConversations, setFilteredConversations] = useState([]);
 
     useEffect(() => {
         if (isOpen) {
@@ -39,6 +41,20 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
             unsubscribeConvDeleted();
         };
     }, [isOpen]);
+
+    useEffect(() => {
+        if (!searchTerm.trim()) {
+            setFilteredConversations(conversations);
+        } else {
+            const lowercasedTerm = searchTerm.toLowerCase();
+            const filtered = conversations.filter(conv =>
+                (conv.title || "Untitled Conversation")
+                    .toLowerCase()
+                    .includes(lowercasedTerm)
+            );
+            setFilteredConversations(filtered);
+        }
+    }, [searchTerm, conversations]);
 
     const loadConversations = async () => {
         setLoading(true);
@@ -79,7 +95,7 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
             await deleteConversation(conversationToDelete);
 
             EventBus.publish(EVENTS.CONVERSATION_DELETED, {
-                 conversationId: conversationToDelete 
+                conversationId: conversationToDelete
             });
             EventBus.publish(EVENTS.DATA_REFRESH_NEEDED, {
                 conversationId: conversationToDelete
@@ -120,10 +136,9 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
 
     return (
         <>
-        <aside 
-            className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-neutral-800 shadow-lg border-r border-gray-200 dark:border-neutral-700 z-50 transform transition-transform duration-300 ${
-                isOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
+            <aside
+                className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-neutral-800 shadow-lg border-r border-gray-200 dark:border-neutral-700 z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
+                    }`}
             >
                 <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700">
                     <h2 className="text-lg font-semibold dark:text-white">Menu</h2>
@@ -135,29 +150,29 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                     </button>
                 </div>
                 <nav className="p-4 flex flex-col space-y-3">
-                    <button 
-                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
-                    onClick={() => {
-                        setDocs(true);
-                    }}    
+                    <button
+                        className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                        onClick={() => {
+                            setDocs(true);
+                        }}
                     >
                         📄 My Documents
                     </button>
-                    <button 
-                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
-                    onClick={handleNavigate}    
+                    <button
+                        className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                        onClick={handleNavigate}
                     >
                         + New chat
                     </button>
-                    <button 
-                    className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
-                    onClick={handleDashboardNavigate}    
+                    <button
+                        className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
+                        onClick={handleDashboardNavigate}
                     >
                         Dashboard
                     </button>
-                    <button 
+                    <button
                         className="w-full bg-purple-700 hover:bg-purple-800 text-white font-medium py-2 px-4 rounded"
-                        onClick={handleNavigateToStats}    
+                        onClick={handleNavigateToStats}
                     >
                         📊 Statistics
                     </button>
@@ -167,42 +182,61 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                 <div className='flex-1 overflow-y-auto'>
                     <div className='px-4 py-2'>
                         <h3 className='text-sm font-semibold text-purple-200 mb-2'>Recent Conversations</h3>
+                        <div className="mb-3 relative">
+                            <input
+                                type="text"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                placeholder="Search conversations..."
+                                className="w-full px-3 py-2 bg-purple-700/30 border border-purple-400/30 
+                                        rounded text-white placeholder-purple-300 text-sm focus:outline-none 
+                                        focus:ring-2 focus:ring-purple-500"
+                            />
+                            {searchTerm && (
+                                <button 
+                                    onClick={() => setSearchTerm("")}
+                                    className="absolute right-2 top-1/2 transform -translate-y-1/2 text-purple-300 hover:text-white"
+                                >
+                                    ×
+                                </button>
+                            )}
+                        </div>
                         {loading ? (
                             <div className='text-white text-sm'>Loading...</div>
-                        ) : conversations.length > 0 ? (
+                        ) : filteredConversations.length > 0 ? (
                             <div className='space-y-1'>
-                            {conversations.map((conv) => (
-                                <div 
-                                    className='flex items-center group hover:bg-purple-700/59 rounded'
-                                    key={conv.id}
-                                >
-                                    <button
+                                {filteredConversations.map((conv) => (
+                                    <div
+                                        className='flex items-center group hover:bg-purple-700/59 rounded'
                                         key={conv.id}
-                                        onClick={() => {
-                                            navigate(`/chat/${conv.id}`);
-                                            onClose();
-                                        }}
-                                        className='w-full px-4 py-2 text-left hover:bg-purple-700/50 text-purple-100 text-sm truncate rounded' 
                                     >
-                                        {conv.title || "Untitled Conversation"}
-                                    </button>
-                                    <button
-                                        onClick={(e) => handleRenameConversation(e, conv)}
-                                        className='px-2 py-2 text-purple-300 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
-                                    >
-                                        <PencilIcon className='h-4 w-4' aria-hidden="true" />
-                                        <span className='sr-only'>Rename Conversation</span>
-                                    </button>
-                                    <button
-                                        onClick={(e) => handleDeleteConversation(e, conv.id)}
-                                        className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
-                                    >
-                                        <TrashIcon className='h-4 w-4' aria-hidden="true" />
-                                        <span className='sr-only'>Delete Conversation</span>
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
+                                        <button
+                                            key={conv.id}
+                                            onClick={() => {
+                                                navigate(`/chat/${conv.id}`);
+                                                onClose();
+                                            }}
+                                            className='w-full px-4 py-2 text-left hover:bg-purple-700/50 text-purple-100 text-sm truncate rounded'
+                                        >
+                                            {conv.title || "Untitled Conversation"}
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleRenameConversation(e, conv)}
+                                            className='px-2 py-2 text-purple-300 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                        >
+                                            <PencilIcon className='h-4 w-4' aria-hidden="true" />
+                                            <span className='sr-only'>Rename Conversation</span>
+                                        </button>
+                                        <button
+                                            onClick={(e) => handleDeleteConversation(e, conv.id)}
+                                            className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                        >
+                                            <TrashIcon className='h-4 w-4' aria-hidden="true" />
+                                            <span className='sr-only'>Delete Conversation</span>
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
                         ) : (
                             <div className='text-purple-200 text-sm'>No conversations found.</div>
                         )}
@@ -256,7 +290,7 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
                                 className="w-full px-3 py-2 border dark:bg-neutral-700 border-gray-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
                             />
                         </div>
-                        
+
                         <div className="flex justify-end space-x-3">
                             <button
                                 onClick={() => setShowRenameModal(false)}
