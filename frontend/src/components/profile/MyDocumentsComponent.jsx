@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { fetchUserDocuments, deleteDocument } from "../../services/documentService";
 import { toast } from "react-toastify";
 import { TrashIcon } from '@heroicons/react/24/outline';
+import EventBus from "../../services/EventBus";
+import { EVENTS } from "../../services/events";
 
-export default function MyDocumentsComponent({ onClose, onDocumentDeleted }) {
+export default function MyDocumentsComponent({ onClose }) {
     const [docs, setDocs] = useState([]);
     const [loading, setLoading] = useState(true);
     const [docToDelete, setDocumentToDelete] = useState(null);
@@ -23,9 +25,14 @@ export default function MyDocumentsComponent({ onClose, onDocumentDeleted }) {
             const updateDocs = await fetchUserDocuments();
             setDocs(updateDocs);
 
-            if (onDocumentDeleted) {
-                onDocumentDeleted(docId);
-            }
+            EventBus.publish(EVENTS.DOCUMENT_DELETED, {
+                documentId: docId
+            });
+
+            EventBus.publish(EVENTS.DATA_REFRESH_NEEDED, {
+                documentId: docId
+            });
+
             toast.success("Document deleted successfully!");
         } catch (error) {
             toast.error("Failed to delete document: " + (error.response?.data?.detail || error.message));

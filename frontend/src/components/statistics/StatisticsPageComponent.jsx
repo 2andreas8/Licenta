@@ -3,15 +3,13 @@ import { fetchStats } from '../../services/StatsService';
 import StatCard from './cards/StatCard';
 import InsightCard from './cards/InsightCard';
 import DocumentUsageChart from './charts/DocumentUsageChart';
+import EventBus from '../../services/EventBus';
+import { EVENTS } from '../../services/events';
 
 export default function StatisticsPageComponent() {
     const [stats, setStats] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    useEffect(() => {
-        loadStats();
-    }, []);
 
     const loadStats = async () => {
             try {
@@ -24,6 +22,25 @@ export default function StatisticsPageComponent() {
                 setLoading(false);
             }
         };
+    
+    useEffect(() => {
+        loadStats();
+    }, []);
+
+    useEffect(() => {
+        const unsubscribeDoc = EventBus.subscribe(EVENTS.DOCUMENT_DELETED, () => {
+            loadStats();
+        });
+
+        const unsubscribeConv = EventBus.subscribe(EVENTS.DATA_REFRESH_NEEDED, () => {
+            loadStats();
+        });
+
+        return () => {
+            unsubscribeDoc();
+            unsubscribeConv();
+        };
+    }, []);
 
     if (loading) return (
         <div className="flex justify-center p-8">

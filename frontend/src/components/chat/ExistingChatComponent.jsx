@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { getConversationMessages, addMessageToConversation, getConversation } from '../../services/conversationsService';
 import { toast } from 'react-toastify';
 import { askQuestion } from '../../services/chatService';
+import { EVENTS } from '../../services/events';
+import EventBus from '../../services/EventBus';
 
 export default function ExistingChatComponent({ conversationId }) {
     const [messages, setMessages] = useState([]);
@@ -16,6 +18,38 @@ export default function ExistingChatComponent({ conversationId }) {
     useEffect(() => {
         loadConversation();
     }, [conversationId]);
+
+    useEffect(() => {
+        if (!uploadedFile?.id) return;
+
+        const unsubscribeDoc = EventBus.subscribe(EVENTS.DOCUMENT_DELETED, (data) => {
+            if (data.documentId === uploadedFile.id) {
+                toast.info("The document associated with this conversation has been deleted.");
+                navigate("/chat/new");
+            }
+        });
+
+        const unsubscribeConv = EventBus.subscribe(EVENTS.CONVERSATION_DELETED, (data) => {
+            if (data.conversationId === parseInt(conversationId)) {
+                toast.info("This conversation has been deleted.");
+                navigate("/chat/new");
+            }
+        });
+
+        const unsubscribeTitleUpdate = EventBus.subscribe(EVENTS.TITLE_UPDATED, (data) => {
+            const currentConvId = Number(conversationId);
+            const updatedConvId = Number(data.conversationId);
+            if (updatedConvId === currentConvId) {
+                setUploadedFile((prev) => ({ ...prev, title: data.newTitle }));
+            }
+        });
+
+        return () => {
+            unsubscribeDoc();
+            unsubscribeConv();
+            unsubscribeTitleUpdate();
+        };
+    }, [conversationId, uploadedFile?.id, navigate]);
 
     useEffect(() => {
         if (messagesEndRef.current) {

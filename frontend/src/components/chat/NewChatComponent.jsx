@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { uploadDocument, checkDocumentStatus } from "../../services/documentService";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 import { fetchUserDocuments } from "../../services/documentService";
 import { askQuestion } from "../../services/chatService";
 import { createConversation, addMessageToConversation } from "../../services/conversationsService";
@@ -13,6 +14,7 @@ console.log("PDF.js version needed:", pdfjs.version);
 pdfjs.GlobalWorkerOptions.workerSrc = `/pdfjs/pdf.worker.min.js`;
 
 export default function NewChatComponent() {
+    const navigate = useNavigate();
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
     const [showOverlay, setShowOverlay] = useState(true);
@@ -50,11 +52,28 @@ export default function NewChatComponent() {
 
     const startNewConversation = async (documentId, filename) => {
         try {
+            setLoading(true);
+
             const conversation = await createConversation(documentId, filename);
+
+            if (!conversation || !conversation.id) {
+                throw new Error("Invalid conversation response");
+            }
             setCurrentConversation(conversation);
+            setUploadedFile({ id: documentId, filename: filename });
+
+            toast.success("Conversation created successfully!");
+            
+            setTimeout(() => {
+                navigate(`/chat/${conversation.id}`);
+            }, 100);
+
+            return conversation;
         } catch (error) {
             console.error("Error creating conversation:", error);
             toast.error("Failed to start a new conversation. Please try again later.");
+        } finally {
+            setLoading(false);
         }
     };
 
@@ -92,52 +111,7 @@ export default function NewChatComponent() {
 
     const onClose = () => {
         setShowOverlay(false);
-    }
-
-    // const handleSubmit = async (e) => {
-    //     e.preventDefault();
-    //     if (!file) {
-    //         alert("Please select a file first!");
-    //         return;
-    //     }
-        
-    //     setLoading(true);
-    //     setUploadProgress(0);
-
-    //     const uploadWithProgress = async () => {
-    //         try {
-    //             const progressInterval = setInterval(() => {
-    //                 setUploadProgress(prev => {
-    //                     if (prev >= 90) {
-    //                         clearInterval(progressInterval);
-    //                         return 90;
-    //                     }
-    //                     return prev + 10;
-    //                 });
-    //             }, 300);
-
-    //             const result = await uploadDocument(file);
-    //             clearInterval(progressInterval);
-    //             setUploadProgress(100);
-
-    //             await startNewConversation(result.id, result.filename);
-    //             toast.success("File uploaded successfully!");
-    //             setUploadedFile(result);
-
-    //             if (preview && preview.type === "pdf" && preview.url) {
-    //                 URL.revokeObjectURL(preview.url);
-    //             }
-    //             setPreview(null);
-
-    //         } catch (error) {
-    //             toast.error(error?.response?.data?.detail || "Upload failed. Please try again.");
-    //         } finally {
-    //             setLoading(false);
-    //         }
-    //     };
-
-    //     uploadWithProgress();
-    // };
+    };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -231,17 +205,13 @@ export default function NewChatComponent() {
                 assistantMessage.content,
                 assistantMessage.role
             );
-
-            setTimeout(() => {
                 setMessages(prev => [...prev, {role: "assistant", content: res.answer}]);
                 setWaitingForAnswer(false);
-            }, 500)
         } catch (error) {
             console.error("Error asking question:", error);
+        } finally {
+            setWaitingForAnswer(false);
         }
-        // } finally {
-        //     setWaitingForAnswer(false);
-        // }
     };
 
     const onFileSelect = async () => {
@@ -251,12 +221,25 @@ export default function NewChatComponent() {
         const selected = existingFiles.find(file => String(file.id) === String(selectedFileId));
         if (selected) {
             try {
-                await startNewConversation(selected.id, selected.filename);
+                setLoading(true);
+
+                const conversation = await startNewConversation(selected.id, selected.filename);
+                if (!conversation || !conversation.id) {
+                    throw new Error("Invalid conversation response");
+                }
+
+                setCurrentConversation(conversation);
                 setUploadedFile(selected);
                 setShowOverlay(false);
+
+                setTimeout(() => {
+                    navigate(`/chat/${conversation.id}`);
+                }, 100);
             } catch (error) {
                 console.error("Error starting conversation with selected file:", error);
                 toast.error("Failed to start conversation with selected file. Please try again.");
+            } finally {
+                setLoading(false);
             }
         }
     };

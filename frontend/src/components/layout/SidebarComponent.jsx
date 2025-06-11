@@ -4,8 +4,10 @@ import { fetchConversations } from '../../services/conversationsService';
 import { toast } from 'react-toastify';
 import { deleteConversation, updateConversationTitle } from '../../services/conversationsService';
 import { TrashIcon, PencilIcon } from '@heroicons/react/24/outline';
+import EventBus from '../../services/EventBus';
+import { EVENTS } from '../../services/events';
 
-export default  function SidebarComponent({ isOpen, onClose, setDocs, refreshTrigger }) {
+export default  function SidebarComponent({ isOpen, onClose, setDocs }) {
     const navigate = useNavigate();
     const [conversations, setConversations] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -16,10 +18,27 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs, refreshTri
     const [newTitle, setNewTitle] = useState("");
 
     useEffect(() => {
-        if (isOpen || refreshTrigger > 0) {
+        if (isOpen) {
             loadConversations();
         }
-    }, [isOpen, refreshTrigger]);
+
+        const unsubscribeDocDeleted = EventBus.subscribe(EVENTS.DOCUMENT_DELETED, () => {
+            if (isOpen) {
+                loadConversations();
+            }
+        });
+
+        const unsubscribeConvDeleted = EventBus.subscribe(EVENTS.CONVERSATION_DELETED, () => {
+            if (isOpen) {
+                loadConversations();
+            }
+        });
+
+        return () => {
+            unsubscribeDocDeleted();
+            unsubscribeConvDeleted();
+        };
+    }, [isOpen]);
 
     const loadConversations = async () => {
         setLoading(true);
@@ -58,10 +77,16 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs, refreshTri
     const confirmDelete = async () => {
         try {
             await deleteConversation(conversationToDelete);
+
+            EventBus.publish(EVENTS.CONVERSATION_DELETED, {
+                 conversationId: conversationToDelete 
+            });
+            EventBus.publish(EVENTS.DATA_REFRESH_NEEDED, {
+                conversationId: conversationToDelete
+            });
             toast.success("Conversation deleted successfully");
             loadConversations();
             setShowDeleteModal(false);
-            navigate("/dashboard");
             onClose();
         } catch (error) {
             console.error("Failed to delete conversation: ", error);
@@ -79,6 +104,11 @@ export default  function SidebarComponent({ isOpen, onClose, setDocs, refreshTri
     const confirmRename = async () => {
         try {
             await updateConversationTitle(conversationToRename.id, newTitle);
+
+            EventBus.publish(EVENTS.TITLE_UPDATED, {
+                conversationId: conversationToRename.id,
+                newTitle: newTitle
+            });
             toast.success("Conversation renamed successfully");
             loadConversations();
             setShowRenameModal(false);
