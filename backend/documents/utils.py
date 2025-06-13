@@ -1,5 +1,6 @@
 import os 
 from langchain_community.document_loaders import TextLoader, PyPDFLoader, Docx2txtLoader
+from langchain.schema import Document
 from langchain_text_splitters import CharacterTextSplitter, RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings, OpenAI
 from langchain_chroma import Chroma
@@ -36,12 +37,19 @@ async def extract_text_from_file(file):
         raise ValueError("Unsupported file type")
     
     documents = loader.load()
-    full_text =  "\n".join([doc.page_content for doc in documents])
+    cleaned_docs = []
+    # Clean up null characters from the text
+    for doc in documents:
+        cleaned_text = doc.page_content.replace("\x00", "")
+        cleaned_doc = Document(page_content=cleaned_text, metadata=doc.metadata)
+        cleaned_docs.append(cleaned_doc)
+
+    full_text =  "\n".join([doc.page_content for doc in cleaned_docs])
 
     # Clean up the temporary file
     os.remove(file_path)
 
-    return full_text, documents
+    return full_text, cleaned_docs
 
 def save_in_vectorstore(documents, file_id: int, user_id: int):
     # RercursiveCharacterTextSplitter has better performance than CharacterTextSplitter
