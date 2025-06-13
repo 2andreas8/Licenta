@@ -4,6 +4,7 @@ from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 from langchain.prompts import PromptTemplate
 from langchain.schema import HumanMessage, AIMessage
 from langchain.memory import ConversationBufferWindowMemory
+from rank_bm25 import BM25Okapi
 
 from dotenv import load_dotenv
 
@@ -38,6 +39,49 @@ def get_relevant_documents(vectorstore, question: str, k: int = 4):
     relevant_docs.sort(key=lambda x: x.metadata.get('chunk_id', 0))
 
     return relevant_docs
+
+def hybrid_search(vectorstore, question: str, k: int = 4):
+    # similarity search
+    semantic_results = vectorstore.similarity_search_with_relevance_scores(question, k=k)
+
+    all_docs = vectorstore.get()
+    chunks = all_docs["documents"] # vs.get returns a dict with "documents" key
+    tokenized_content = [doc.split() for doc in chunks]
+
+    # BM25 search
+    bm25 = BM25Okapi(tokenized_content)
+    tokenized_query = question.split()
+    lexical_scores = bm25.get_scores(tokenized_query)
+
+    # combine results
+    combined_results = []
+    for doc, sem_score in semantic_results:
+        doc_id = doc.metadata.get("id", None)
+        found_idx = None
+        
+        # find the index of the document in chunks
+        for i, content in enumerate(chunks):
+            if content == doc.page_content:
+                found_idx = i
+                break
+        
+        # combine semantic and lexical scores
+        if found_idx is not None:
+            lex_score = lexical_scores[found_idx]
+            # normalize lexical score (0 to 1)
+            norm_lex_score = lex_score / max(lexical_scores) if max(lexical_scores) > 0 else 0
+
+            # combine scores (70% semantic, 30% lexical)
+            combined_score = 0.7 * sem_score + 0.3 * norm_lex_score
+            combined_results.append((doc, combined_score))
+        else:
+            # if document not found in chunks, use only semantic score
+            combined_results.append((doc, sem_score * 0.7))
+
+    combined_results.sort(key=lambda x: x[1], reverse=True)
+
+    return [doc for doc, _ in combined_results[:k]]
+
 
 def generate_answer(question: str, context: str)-> str:
     # TODO - Implement the logic to generate an answer based on the question and context
@@ -116,20 +160,45 @@ def generate_answer_with_sources(question: str, docs: list, memory=None) -> dict
     context = "\n\n".join(context_parts)
     print(f"Created context with {len(context_parts)} parts")
     
-    template = """Use the following pieces of context to answer the question at the end.
-    If you don't know the answer, use information from the previous conversation if relevant. If not just say "I cannot answer based on the provided documents".
-    Mention the sources of your answer in the format [Fragment X].
+    # template = """Use the following pieces of context to answer the question at the end.
+    # If you don't know the answer, use information from the previous conversation if relevant. If not just say "I cannot answer based on the provided documents".
+    # Mention the sources of your answer in the format [Fragment X].
     
     
-    Fragments:
+    # Fragments:
+    # {context}
+
+    # Previous conversation:
+    # {chat_history}
+    
+    # Question: {question}
+    
+    # Answer:"""
+
+    template = """\
+    Use **only** the following context fragments and chat history to answer the question. Do **not** use any external knowledge; if the answer isn’t in the provided context, reply: “Sorry, can’t answer your question, try asking it in a different way.”
+
+    [Formatting Instructions]
+    1. **Concise Answer**: 1-2 sentences that directly address the question.  
+    2. **Detailed Explanation**: 3-5 bullet points:  
+    - Summarize key concepts.  
+    - Include a brief example if it clarifies your point.  
+    3. **Citations**: Mark each fact you draw from a fragment as `[Fragment X]`.  
+    4. **Code/Algorithms**: If showing code or algorithms, format them clearly.  
+    5. **Contextual Linking**: Refer to prior conversation when relevant.
+
+    **Context Fragments:**  
     {context}
 
-    Previous conversation:
+    **Chat History:**  
     {chat_history}
-    
-    Question: {question}
-    
-    Answer:"""
+
+    **Question:**  
+    {question}
+
+    **Answer:**"""
+
+
     
     try:
         chat_history = ""

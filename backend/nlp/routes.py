@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from nlp.schemas import QARequest
 from auth.security import get_current_user
-from nlp.utils import get_vectorstore_for_file, generate_answer, get_relevant_documents, generate_answer_with_sources
+from nlp.utils import get_vectorstore_for_file, hybrid_search, get_relevant_documents, generate_answer_with_sources
 from langchain.memory import ConversationBufferWindowMemory
 from conversations.models import Conversation, Message
 from conversations.schemas import MessageCreate
@@ -76,7 +76,7 @@ async def ask_question(
         raise HTTPException(status_code=404, detail="Vector store not found for this file.")
     
     try:
-        relevant_docs = get_relevant_documents(vectorstore, qa.question, k=4)
+        relevant_docs = hybrid_search(vectorstore, qa.question, k=4)
         print(f"Found {len(relevant_docs)} relevant documents")
     except Exception as e:
         print("Error finding relevant documents:", e)
@@ -128,3 +128,36 @@ async def debug_file_chunks(
     except Exception as e:
         print(f"Debug error: {e}")
         return {"error": str(e), "file_id": file_id}
+    
+
+
+# TEST
+@router.get("/debug/search-comparison/{file_id}")
+async def compare_search_methods(
+    file_id: int,
+    query: str,
+    current_user = Depends(get_current_user)
+):
+    persist_dir = f"./vectorstore/{current_user.id}/{file_id}"
+    vectorstore = get_vectorstore_for_file(persist_dir)
+    
+    # Obține rezultate din ambele metode
+    semantic_results = get_relevant_documents(vectorstore, query, k=3)
+    hybrid_results = hybrid_search(vectorstore, query, k=3)
+    
+    # Formatează rezultatele pentru afișare
+    return {
+        "query": query,
+        "semantic_results": [
+            {
+                "content": doc.page_content[:200] + "...",
+                "metadata": doc.metadata
+            } for doc in semantic_results
+        ],
+        "hybrid_results": [
+            {
+                "content": doc.page_content[:200] + "...",
+                "metadata": doc.metadata
+            } for doc in hybrid_results
+        ]
+    }
