@@ -102,7 +102,7 @@ export default function ExistingChatComponent({ conversationId }) {
     };
 
     const highlightSourceReferences = (content) => {
-        return content.replace(/\[Fragment (\d+)\]/g, '**[Fragment $1]**');
+        return content.replace(/\[Fragment (\d+)(?:,\s*Page (\d+))?\]/g, '**[Fragment $1, Page $2]**');
     };
 
     const markdownComponents = {
