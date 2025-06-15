@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException
 from nlp.schemas import QARequest
 from auth.security import get_current_user
-from nlp.utils import get_vectorstore_for_file, hybrid_search, get_relevant_documents, generate_answer_with_sources
+from nlp.utils import get_vectorstore_for_file, hybrid_search, get_relevant_documents, generate_answer_with_sources, generate_summary_for_chunks
 from langchain.memory import ConversationBufferWindowMemory
 from conversations.models import Conversation, Message
+from documents.models import Document
 from conversations.schemas import MessageCreate
 from database.db import SessionLocal
 from sqlalchemy.orm import Session
+import time
 import os
 
 router = APIRouter(prefix="/nlp", tags=["NLP"])
@@ -92,8 +94,64 @@ async def ask_question(
     except Exception as e:
         print("Error generating answer:", e)
         raise HTTPException(status_code=500, detail="Error generating answer.")
+    
+@router.post("/summary/{file_id}")
+async def generate_document_summary(
+    file_id: int,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Generates a summary for the document associated with the given file_id."""
+    document = db.query(Document).filter(
+        Document.id == file_id,
+        Document.user_id == current_user.id
+    ).first()
 
+    if not document:
+        raise HTTPException(status_code=404, detail="Document not found or not owned by user.")
+    
+    persist_dir = os.path.abspath(f"./vectorstore/{current_user.id}/{file_id}")
+    try:
+        vectorstore = get_vectorstore_for_file(persist_dir)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Vector store not found for this file.")
+    
+    all_docs = vectorstore.get()
+    chunks = all_docs["documents"]
 
+    chunk_count = len(chunks)
+    total_chars = sum(len(chunk) for chunk in chunks)
+    print(f"Total chunks: {chunk_count}, Total characters: {total_chars}")
+
+    start_time = time.time()
+
+    try:
+        summary = generate_summary_for_chunks(
+            chunks,
+            max_length=5000,
+            document_title=document.filename
+        )
+
+        processing_time = time.time() - start_time
+
+        result = {
+            "document_id": file_id,
+            "document_title": document.filename,
+            "summary": summary,
+            "metrics": {
+                "chunk_count": chunk_count,
+                "total_characters": total_chars,
+                "processing_time_seconds": round(processing_time, 2)
+            }
+        }
+
+        # TODO save to db
+
+        return result
+
+    except Exception as e:
+        print(f"Error generating summary: {e}")
+        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")
 
 @router.get("/debug/chunks/{file_id}")
 async def debug_file_chunks(
@@ -106,7 +164,7 @@ async def debug_file_chunks(
     try:
         vectorstore = get_vectorstore_for_file(persist_dir)
         
-        # Ia primele 3 documente pentru debug
+        # Takes first 3 chunks for debugging
         docs = vectorstore.similarity_search("", k=3)
         
         chunks_info = []
@@ -141,11 +199,11 @@ async def compare_search_methods(
     persist_dir = f"./vectorstore/{current_user.id}/{file_id}"
     vectorstore = get_vectorstore_for_file(persist_dir)
     
-    # Obține rezultate din ambele metode
+    # Results from both methods
     semantic_results = get_relevant_documents(vectorstore, query, k=3)
     hybrid_results = hybrid_search(vectorstore, query, k=3)
     
-    # Formatează rezultatele pentru afișare
+    # Format results for easier comparison
     return {
         "query": query,
         "semantic_results": [
