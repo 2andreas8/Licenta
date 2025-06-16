@@ -23,6 +23,26 @@ class EventBus {
         };
     }
 
+    /**
+     * Unsubscribe from an event.
+     * @param {string} event - Event name
+     * @param {Function} [callback] - Optional callback to remove. If not provided, removes all listeners.
+     */
+    unsubscribe(event, callback = null) {
+        if (!this.listeners.has(event)) {
+            return;
+        }
+        
+        if (callback === null) {
+            // Remove all listeners for this event
+            this.listeners.delete(event);
+        } else {
+            // Remove specific callback
+            const filteredCallbacks = this.listeners.get(event).filter(cb => cb !== callback);
+            this.listeners.set(event, filteredCallbacks);
+        }
+    }
+
     publish(event, data) {
         (this.listeners.get(event) || []).slice().forEach(cb => cb(data));
     }

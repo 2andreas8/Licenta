@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { fetchUserDocuments, deleteDocument } from "../../services/documentService";
 import { toast } from "react-toastify";
-import { TrashIcon } from '@heroicons/react/24/outline';
+import { TrashIcon, SparklesIcon } from '@heroicons/react/24/outline';
 import EventBus from "../../services/EventBus";
 import { EVENTS } from "../../services/events";
+import SummaryButton from "../summary/SummaryButton";
 
 export default function MyDocumentsComponent({ onClose }) {
     const [docs, setDocs] = useState([]);
@@ -18,6 +19,10 @@ export default function MyDocumentsComponent({ onClose }) {
             })
             .finally(() => setLoading(false));
     }, []);
+
+    const handleSummarize = (docId) => {
+        EventBus.publish(EVENTS.SUMMARY_REQUEST, { documentId: docId });
+    };
 
     const handleDeleteDocument = async (docId) => {
         try {
@@ -62,17 +67,37 @@ export default function MyDocumentsComponent({ onClose }) {
                     {docs.map(doc => (
                         <li
                             key={doc.id}
-                            className="flex items-center justify-between px-2 py-2 rounded hover:bg-slate-700 transition group"
+                            className="flex items-center justify-between px-4 py-3 rounded hover:bg-slate-700/60 transition group border border-transparent hover:border-slate-600/50"
                         >
-                            <span className="truncate">{doc.filename}</span>
-                            {/* Delete */}
-                            <button
-                                onClick={(e) => setDocumentToDelete(doc)}
-                                className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
-                            >
-                                <TrashIcon className='h-4 w-4' aria-hidden="true" />
-                                <span className='sr-only'>Delete Document</span>
-                            </button>
+                            {/* Document Name */}
+                            <div className="flex items-center space-x-3 overflow-hidden">
+                                <span className="text-purple-300 flex-shrink-0">
+                                    {doc.filename.endsWith('.pdf') ?
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"></path><path d="M3 8a2 2 0 012-2h2.5v10H5a2 2 0 01-2-2V8z"></path></svg> :
+                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"></path></svg>
+                                    }
+                                </span>
+                                <span className="truncate text-gray-200">{doc.filename}</span>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="flex items-center space-x-2 ml-2">
+                                <SummaryButton
+                                    documentId={doc.id}
+                                    className="p-1.5 rounded hover:bg-white-900/50 text-purple-300 hover:text-green-400 opacity-0 group-hover:opacity-100 transition-all ease-in-out duration-200 flex items-center gap-1"
+                                >
+                                    <SparklesIcon className="h-4 w-4" />
+                                    <span className="text-sm">Summarize</span>
+                                </SummaryButton>
+
+                                <button
+                                    onClick={() => setDocumentToDelete(doc)}
+                                    className="p-1.5 rounded hover:bg-red-900/40 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all ease-in-out duration-200"
+                                    title="Delete Document"
+                                >
+                                    <TrashIcon className='h-4 w-4' />
+                                </button>
+                            </div>
                         </li>
                     ))}
                 </ul>
@@ -86,7 +111,7 @@ export default function MyDocumentsComponent({ onClose }) {
                             Delete Document
                         </h3>
                         <p className="text-gray-600 dark:text-gray-300 mb-6">
-                            Are you sure you want to delete "{docToDelete.filename}"? 
+                            Are you sure you want to delete "{docToDelete.filename}"?
                             This will also delete all conversations related to this document.
                         </p>
                         <div className="flex justify-end space-x-3">
