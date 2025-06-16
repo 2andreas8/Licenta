@@ -15,7 +15,7 @@ export default function Login() {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if(params.get("session_expired")) {
+        if (params.get("session_expired")) {
             setError("Session expired. Please log in again.")
         }
     }, [location]);
@@ -74,7 +74,7 @@ export default function Login() {
                     <div className="mb-4 relative">
                         <input
                             className="w-full p-2 rounded-lg bg-white bg-opacity-20 text-white placeholder-white focus:outline-none focus:ring-2 focus:ring-purple-400"
-                            type="password"    
+                            type="password"
                             id="password"
                             name="password"
                             placeholder="Password"
@@ -94,9 +94,9 @@ export default function Login() {
                         type="submit"
                     >
                         {loading && (
-                            <span className="animate-spin inline-block size-4 border-2 border-current border-t-transparent text-white rounded-full" 
-                            role="status" 
-                            aria-label="loading">
+                            <span className="animate-spin inline-block size-4 border-2 border-current border-t-transparent text-white rounded-full"
+                                role="status"
+                                aria-label="loading">
                             </span>
                         )}
                         Login

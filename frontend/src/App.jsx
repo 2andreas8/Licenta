@@ -11,6 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import { getCurrentUser } from './services/authService';
 import { useState, useEffect } from 'react';
 import './index.css';
+import { initSummaryHandler } from './services/summaryService';
 
 function AuthenticatedRoute({ children }) {
   const [loading, setLoading] = useState(true);
@@ -21,6 +22,10 @@ function AuthenticatedRoute({ children }) {
       .then(() => setValid(true))
       .catch(() => setValid(false))
       .finally(() => setLoading(false));
+  }, []);
+
+  useEffect(() => {
+    initSummaryHandler();
   }, []);
 
   if(loading) return <div>Loading...</div>;

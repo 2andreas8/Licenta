@@ -1,4 +1,5 @@
 import axios from 'axios';
+import  { toast } from 'react-toastify';
 
 const AUTH_API_URL = "http://localhost:8000/auth";
 
@@ -80,17 +81,17 @@ export const changePasswordRequest = async (oldPassword, newPassword) => {
         );
         return res.data;
     } catch (error) {
-        throw error || "Unknown error";
+        throw error.response?.data?.detail || error.message || "Unknown error";
     }
 }
 
 axios.interceptors.response.use(
-    respone => respone,
+    response => response,
     error => {
         const originalRequest = error.config;
         if(
-            originalRequest.url.includes('/') ||
-            originalRequest.url.includes('/register')
+            originalRequest.url.includes(`${AUTH_API_URL}/login`) ||
+            originalRequest.url.includes(`${AUTH_API_URL}/register`)
         ) {
             return Promise.reject(error);
         }

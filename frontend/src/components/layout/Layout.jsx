@@ -3,6 +3,7 @@ import HeaderComponent from "./HeaderComponent";
 import SidebarComponent from "./SidebarComponent";
 import ProfileComponent from "../profile/ProfileComponent";
 import MyDocumentsComponent from '../profile/MyDocumentsComponent';
+import SummaryDialog from "../summary/SummaryDialog";
 
 export default function Layout({ children }) {
     const [isSidebarOpen, setSidebarOpen] = useState(false);
@@ -45,6 +46,7 @@ export default function Layout({ children }) {
             />
           </div>
         )}
+        <SummaryDialog />
       </div>
     </div>
   );
