@@ -2,15 +2,13 @@ from fastapi import APIRouter, Depends, HTTPException, Request, BackgroundTasks
 from nlp.schemas import QARequest
 from auth.security import get_current_user
 from nlp.utils import get_vectorstore_for_file, hybrid_search, get_relevant_documents
-from nlp.utils import generate_answer_with_sources, generate_summary_for_chunks, generate_summary_for_chunks_with_cancellation
+from nlp.utils import generate_answer_with_sources, generate_summary_for_chunks
 from langchain.memory import ConversationBufferWindowMemory
 from conversations.models import Conversation, Message
 from documents.models import Document
 from conversations.schemas import MessageCreate
 from database.db import SessionLocal
 from sqlalchemy.orm import Session
-from starlette.concurrency import run_in_threadpool
-import asyncio
 import time
 import os
 
@@ -98,33 +96,14 @@ async def ask_question(
         print("Error generating answer:", e)
         raise HTTPException(status_code=500, detail="Error generating answer.")
 
-active_summary_tasks = {}
-
 @router.post("/summary/{file_id}")
 async def generate_document_summary(
     file_id: int,
-    request: Request,
-    background_tasks: BackgroundTasks,
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
     """Generates a summary for the document associated with the given file_id."""
-    # unique id for the task
-    task_id = f"{current_user.id}_{file_id}_{time.time()}"
-    active_summary_tasks[task_id] = {"canceled": False}
-
-    async def check_client_disconnection():
-        try:
-            await request.is_disconnected()
-            print(f"Client disconnected, canceling summary task {task_id}")
-            if task_id in active_summary_tasks:
-                active_summary_tasks[task_id]["canceled"] = True
-        except Exception as e:
-            print(f"Error in disconnect handler: {e}")
-
-    background_tasks.add_task(check_client_disconnection)
-
-    document = db.query(Document).filter(
+    '''document = db.query(Document).filter(
         Document.id == file_id,
         Document.user_id == current_user.id
     ).first()
@@ -148,21 +127,15 @@ async def generate_document_summary(
     start_time = time.time()
 
     try:
-        summary = await run_in_threadpool (
-            generate_summary_for_chunks_with_cancellation,
+        summary = generate_summary_for_chunks(
             chunks,
             max_length=5000,
-            document_title=document.filename,
-            task_id=task_id
+            document_title=document.filename
         )
-
-        if task_id in active_summary_tasks and active_summary_tasks[task_id]["canceled"]:
-            return {"status": "canceled", "message": "Summary generation was canceled"}
 
         processing_time = time.time() - start_time
 
         result = {
-            "task_id": task_id,
             "document_id": file_id,
             "document_title": document.filename,
             "summary": summary,
@@ -179,67 +152,13 @@ async def generate_document_summary(
 
     except Exception as e:
         print(f"Error generating summary: {e}")
-        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")
-    finally:
-        if task_id in active_summary_tasks:
-            del active_summary_tasks[task_id]
+        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")'''
     
-    '''return {
+    return {
         "document_id": file_id,
         "document_title": "Example Document",
         "summary": "This is a placeholder summary for the document.",
-    }'''
-
-@router.post("/summary/cancel/{task_id}")
-async def cancel_summary_generation(
-    task_id: str,
-    current_user = Depends(get_current_user)
-):
-    """Cancels a running summary generation task"""
-    if not task_id.startswith(f"{current_user.id}_"):
-        raise HTTPException(status_code=403, detail="Not authorized to cancel this task")
-        
-    if task_id in active_summary_tasks:
-        active_summary_tasks[task_id]["canceled"] = True
-        return {"status": "success", "message": "Summary generation canceled"}
-    else:
-        return {"status": "not_found", "message": "No active summary task found"}
-
-@router.get("/debug/chunks/{file_id}")
-async def debug_file_chunks(
-    file_id: int,
-    current_user = Depends(get_current_user)
-):
-    """Debug endpoint pentru a vedea chunk-urile unui fișier"""
-    persist_dir = os.path.abspath(f"./vectorstore/{current_user.id}/{file_id}")
-    
-    try:
-        vectorstore = get_vectorstore_for_file(persist_dir)
-        
-        # Takes first 3 chunks for debugging
-        docs = vectorstore.similarity_search("", k=3)
-        
-        chunks_info = []
-        for i, doc in enumerate(docs):
-            print(f"Document {i} metadata: {doc.metadata}")
-            chunks_info.append({
-                "index": i,
-                "metadata": doc.metadata,
-                "content_preview": doc.page_content[:200] + "...",
-                "content_length": len(doc.page_content)
-            })
-        
-        return {
-            "file_id": file_id,
-            "chunks_shown": len(chunks_info),
-            "chunks": chunks_info
-        }
-    
-    except Exception as e:
-        print(f"Debug error: {e}")
-        return {"error": str(e), "file_id": file_id}
-    
-
+    }
 
 # TEST
 @router.get("/debug/search-comparison/{file_id}")
