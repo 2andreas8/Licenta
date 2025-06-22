@@ -8,6 +8,7 @@ export default function Login() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
+    const [sessionExpired, setSessionExpired] = useState('');
 
     const navigator = useNavigate();
 
@@ -15,8 +16,11 @@ export default function Login() {
 
     useEffect(() => {
         const params = new URLSearchParams(location.search);
-        if (params.get("session_expired")) {
-            setError("Session expired. Please log in again.")
+        console.log("URL search params:", location.search);
+        console.log("session_expired param value:", params.get("session_expired"));
+        if (params.has("session_expired")) {
+            console.log("Session expired detected in URL");
+            setSessionExpired("Session expired. Please log in again.")
         }
     }, [location]);
 
@@ -101,7 +105,7 @@ export default function Login() {
                         )}
                         Login
                     </button>
-                    {error && <div className="text-red-400 mt-2 mb-2">{error}</div>}
+                    {sessionExpired && <div className="text-red-400 mt-2 mb-2">{sessionExpired}</div>}
                     <div className="mt-4 text-center">
                         <span className="text-white">Don't have an account? </span>
                         <Link to="/register" className="text-purple-300 hover:underline hover:text-purple-400">

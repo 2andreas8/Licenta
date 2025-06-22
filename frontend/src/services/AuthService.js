@@ -52,7 +52,7 @@ export const getCurrentUser = async () => {
             // Token expired or invalid
             toast.error("Session expired. Please log in again.");
             sessionStorage.removeItem('access_token');
-            window.location.href = "/"; // or use navigate("/") if in a React component
+            window.location.href = "/?session_expired=1"; // or use navigate("/") if in a React component
         }
         throw error.response?.data?.detail || error.message || "Unknown error";
     }
