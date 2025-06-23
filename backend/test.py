@@ -4,8 +4,6 @@ load_dotenv()
 
 from langchain_chroma import Chroma
 from langchain_openai import OpenAIEmbeddings
-
-from nlp.utils import generate_answer, get_vectorstore_for_file
 import os
 import shutil
 
@@ -66,4 +64,8 @@ def test_nlp():
     
     
 if __name__ == "__main__":
-    clear_vectorstore_folder()
+    # clear_vectorstore_folder()
+    import secrets
+
+    secret_key = secrets.token_urlsafe(64)
+    print(f"Generated secret key: {secret_key}")
