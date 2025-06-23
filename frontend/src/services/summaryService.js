@@ -17,7 +17,6 @@ export const generateDocumentSummary = async({ documentId }) => {
     try {
         const response = await axios.post(`${SUMMARY_API_URL}/${documentId}`, {}, {
             headers: { Authorization: `Bearer ${token}` },
-            timeout: 60000 // 60 seconds timeout
         });
 
         return response.data;

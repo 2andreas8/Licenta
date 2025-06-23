@@ -31,7 +31,7 @@ export default function SummaryDialog({ }) {
 
     const handleCopy = () => {
         if (!summary || !summary.summary) return;
-        
+
         navigator.clipboard.writeText(summary.summary);
         toast.success("Summary copied to clipboard!");
     };
@@ -97,24 +97,38 @@ export default function SummaryDialog({ }) {
                 {/* Footer */}
                 <div className="border-t border-purple-900/30 px-6 py-3 flex justify-between items-center bg-slate-800/90">
                     <div className="text-sm text-purple-200/70">
-                        {summary?.metrics && (
-                            <div className="flex items-center space-x-3">
-                                <div className="flex items-center">
-                                    <svg className="h-4 w-4 text-purple-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                                    </svg>
-                                    <span>{summary.metrics.chunk_count} chunks</span>
-                                </div>
-                                {summary.metrics.processing_time_seconds && (
+                        <div className="text-sm text-purple-200/70">
+                            {summary?.metrics && (
+                                <div className="flex items-center space-x-3">
                                     <div className="flex items-center">
                                         <svg className="h-4 w-4 text-purple-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                         </svg>
-                                        <span>{summary.metrics.processing_time_seconds}s</span>
+                                        <span>{summary.metrics.chunk_count} chunks</span>
                                     </div>
-                                )}
-                            </div>
-                        )}
+                                    {summary.metrics.processing_time_seconds && (
+                                        <div className="flex items-center">
+                                            <svg className="h-4 w-4 text-purple-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                            </svg>
+                                            <span>{summary.metrics.processing_time_seconds}s</span>
+                                        </div>
+                                    )}
+                                    {/* Adaugă indicatorul de cache aici */}
+                                    {summary.metrics.cached && (
+                                        <div className="flex items-center">
+                                            <svg className="h-4 w-4 text-green-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            <span className="text-green-300">
+                                                Cached {summary.metrics.generated_at &&
+                                                    `(${new Date(summary.metrics.generated_at).toLocaleString()})`}
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                     <div className="flex space-x-3">
                         <button
