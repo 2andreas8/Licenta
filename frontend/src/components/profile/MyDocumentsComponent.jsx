@@ -11,6 +11,21 @@ export default function MyDocumentsComponent({ onClose }) {
     const [loading, setLoading] = useState(true);
     const [docToDelete, setDocumentToDelete] = useState(null);
 
+    const [currentPage, setCurrentPage] = useState(1);
+    const [docsPerPage] = useState(4);
+
+    const [searchTerm, setSearchTerm] = useState("");
+
+    const filteredDocs = docs.filter(doc =>
+        doc.filename.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    const indexOfLastDoc = currentPage * docsPerPage;
+    const indexOfFirstDoc = indexOfLastDoc - docsPerPage;
+    const currentDocs = filteredDocs.slice(indexOfFirstDoc, indexOfLastDoc);
+
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
     useEffect(() => {
         fetchUserDocuments()
             .then(setDocs)
@@ -63,44 +78,96 @@ export default function MyDocumentsComponent({ onClose }) {
             ) : docs.length === 0 ? (
                 <div className="text-center text-gray-400 py-8">No documents uploaded yet.</div>
             ) : (
-                <ul className="space-y-3">
-                    {docs.map(doc => (
-                        <li
-                            key={doc.id}
-                            className="flex items-center justify-between px-4 py-3 rounded hover:bg-slate-700/60 transition group border border-transparent hover:border-slate-600/50"
-                        >
-                            {/* Document Name */}
-                            <div className="flex items-center space-x-3 overflow-hidden">
-                                <span className="text-purple-300 flex-shrink-0">
-                                    {doc.filename.endsWith('.pdf') ?
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"></path><path d="M3 8a2 2 0 012-2h2.5v10H5a2 2 0 01-2-2V8z"></path></svg> :
-                                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"></path></svg>
-                                    }
-                                </span>
-                                <span className="truncate text-gray-200">{doc.filename}</span>
-                            </div>
+                <>
+                    {/* Adaugă search filter */}
+                    <div className="mb-4">
+                        <input
+                            type="text"
+                            placeholder="Search documents..."
+                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                            value={searchTerm}
+                            onChange={(e) => {
+                                setSearchTerm(e.target.value);
+                                setCurrentPage(1); // Reset to first page on search
+                            }}
+                        />
+                    </div>
 
-                            {/* Actions */}
-                            <div className="flex items-center space-x-2 ml-2">
-                                <SummaryButton
-                                    documentId={doc.id}
-                                    className="p-1.5 rounded hover:bg-white-900/50 text-purple-300 hover:text-green-400 opacity-0 group-hover:opacity-100 transition-all ease-in-out duration-200 flex items-center gap-1"
-                                >
-                                    <SparklesIcon className="h-4 w-4" />
-                                    <span className="text-sm">Summarize</span>
-                                </SummaryButton>
+                    {/* Document list */}
+                    <div className="max-h-[320px] overflow-y-auto mb-4">
+                        <ul className="space-y-3">
+                            {currentDocs.map(doc => (
+                                <li key={doc.id} className="...">
+                                    <div className="flex items-center space-x-3 overflow-hidden">
+                                        {/* Icon based on file type */}
+                                        <span className="text-purple-300 flex-shrink-0">
+                                            {doc.filename.endsWith('.pdf') ? (
+                                                <span className="flex items-center">
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path d="M9 2a2 2 0 00-2 2v8a2 2 0 002 2h6a2 2 0 002-2V6.414A2 2 0 0016.414 5L14 2.586A2 2 0 0012.586 2H9z"></path>
+                                                        <path d="M3 8a2 2 0 012-2h2.5v10H5a2 2 0 01-2-2V8z"></path>
+                                                    </svg>
+                                                    <span className="text-xs bg-red-900/60 rounded-sm px-1 ml-1">PDF</span>
+                                                </span>
+                                            ) : doc.filename.endsWith('.txt') ? (
+                                                <span className="flex items-center">
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"></path>
+                                                    </svg>
+                                                    <span className="text-xs bg-blue-900/60 rounded-sm px-1 ml-1">TXT</span>
+                                                </span>
+                                            ) : (
+                                                <span className="flex items-center">
+                                                    <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4z" clipRule="evenodd"></path>
+                                                    </svg>
+                                                    <span className="text-xs bg-gray-900/60 rounded-sm px-1 ml-1">DOC</span>
+                                                </span>
+                                            )}
+                                        </span>
 
+                                        <span className="truncate text-gray-200">{doc.filename}</span>
+                                    </div>
+
+                                    <div className="flex space-x-1 flex-shrink-0">
+                                        <SummaryButton
+                                            documentId={doc.id}
+                                            className="p-1 text-purple-300 hover:text-purple-100 transition"
+                                        />
+                                        <button
+                                            onClick={() => setDocumentToDelete(doc)}
+                                            className="p-1 text-red-400 hover:text-red-300 transition"
+                                            title="Delete document"
+                                        >
+                                            <TrashIcon className="h-5 w-5" />
+                                        </button>
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+
+                    {/* Page control */}
+                    <div className="flex justify-between items-center pt-3 border-t border-slate-700">
+                        <span className="text-sm text-gray-400">
+                            Showing {indexOfFirstDoc + 1}-{Math.min(indexOfLastDoc, filteredDocs.length)} of {filteredDocs.length}
+                        </span>
+                        <div className="flex space-x-1">
+                            {Array.from({ length: Math.ceil(filteredDocs.length / docsPerPage) }).map((_, index) => (
                                 <button
-                                    onClick={() => setDocumentToDelete(doc)}
-                                    className="p-1.5 rounded hover:bg-red-900/40 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all ease-in-out duration-200"
-                                    title="Delete Document"
+                                    key={index}
+                                    onClick={() => paginate(index + 1)}
+                                    className={`px-2.5 py-1 rounded text-xs ${currentPage === index + 1
+                                        ? 'bg-purple-600 text-white'
+                                        : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
+                                        }`}
                                 >
-                                    <TrashIcon className='h-4 w-4' />
+                                    {index + 1}
                                 </button>
-                            </div>
-                        </li>
-                    ))}
-                </ul>
+                            ))}
+                        </div>
+                    </div>
+                </>
             )}
 
             {/* Confirmation Modal */}
