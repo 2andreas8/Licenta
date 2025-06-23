@@ -23,8 +23,10 @@ from sqlalchemy.orm import Session
 load_dotenv()
 
 SECRET_KEY = os.getenv("SECRET_KEY")
+REFRESH_TOKEN_SECRET = os.getenv("REFRESH_TOKEN_SECRET", SECRET_KEY + "_refresh")
 ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
+REFRESH_TOKEN_EXPIRE_DAYS = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS"))
 
 if not SECRET_KEY or not ALGORITHM:
     raise ValueError("SECRET_KEY and ALGORITHM must be set in the environment variables.")
@@ -68,4 +70,17 @@ def decode_access_token(token: str) -> Optional[dict]:
         return jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
     except (ExpiredSignatureError, InvalidTokenError, PyJWTError) as e:
         logging.error(f"Token decoding error: {e}")
+        return None
+    
+def create_refresh_token(data: dict[str, str]) -> str:
+    to_encode = data.copy()
+    expire = datetime.utcnow() + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+    to_encode.update({"exp": expire})
+    return jwt.encode(to_encode, REFRESH_TOKEN_SECRET, algorithm=ALGORITHM)
+
+def decode_refresh_token(token: str) -> Optional[dict]:
+    try:
+        return jwt.decode(token, REFRESH_TOKEN_SECRET, algorithms=[ALGORITHM])
+    except (ExpiredSignatureError, InvalidTokenError, PyJWTError) as e:
+        logging.error(f"Refresh token decoding error: {e}")
         return None

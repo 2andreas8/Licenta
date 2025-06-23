@@ -19,7 +19,7 @@ def get_db():
     finally:
         db.close()
 
-@router.post("/login", response_model=schemas.Token)
+@router.post("/login", response_model=schemas.TokenResponse)
 def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     user = db.query(DBUser).filter(DBUser.username == form_data.username).first()
     if not user:
@@ -40,7 +40,14 @@ def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(), db:
         expires_delta=access_token_expires
     )
 
-    return {"access_token": access_token, "token_type": "bearer", "message": f"Welcome back, {user.username}!"}
+    refresh_token = security.create_refresh_token(data={"sub": user.username})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "message": f"Welcome back, {user.username}!"
+    }
 
 @router.get("/me", response_model=schemas.User)
 def read_users_me(current_user: models.User = Depends(get_current_user)):
@@ -95,3 +102,44 @@ def change_password(
     user.hashed_password = hash_password(data.new_password)
     db.commit()
     return {"message": "Password changed successfully."}
+
+@router.post("/refresh", response_model = schemas.TokenResponse)
+def refresh_access_token(
+    refresh_data: schemas.RefreshRequest,
+    db: Session = Depends(get_db)
+):
+    payload = security.decode_refresh_token(refresh_data.refresh_token)
+    if not payload:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired refresh token"
+        )
+    
+    username: str = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token data"
+        )
+    
+    user = db.query(DBUser).filter(DBUser.username == username).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found"
+        )
+    
+    access_token_expires = timedelta(minutes=security.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = security.create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires
+    )
+
+    refresh_token = security.create_refresh_token(data={"sub": user.username})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "message": "Token refreshed successfully."
+    }
