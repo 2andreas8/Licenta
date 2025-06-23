@@ -12,6 +12,7 @@ import { getCurrentUser } from './services/authService';
 import { useState, useEffect } from 'react';
 import './index.css';
 import { initSummaryHandler } from './services/summaryService';
+import './styles/scrollbar.css';
 
 function AuthenticatedRoute({ children }) {
   const [loading, setLoading] = useState(true);

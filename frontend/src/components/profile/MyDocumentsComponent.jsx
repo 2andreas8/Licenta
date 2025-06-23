@@ -16,6 +16,9 @@ export default function MyDocumentsComponent({ onClose }) {
 
     const [searchTerm, setSearchTerm] = useState("");
 
+    const [sortBy, setSortBy] = useState("date"); // Default sort by date
+    const [sortOrder, setSortOrder] = useState("asc");
+
     const filteredDocs = docs.filter(doc =>
         doc.filename.toLowerCase().includes(searchTerm.toLowerCase())
     );
@@ -79,18 +82,60 @@ export default function MyDocumentsComponent({ onClose }) {
                 <div className="text-center text-gray-400 py-8">No documents uploaded yet.</div>
             ) : (
                 <>
-                    {/* Adaugă search filter */}
-                    <div className="mb-4">
+                    <div className="mb-4 relative flex items-center bg-slate-900 rounded-md border border-slate-700">
+                        {/* Search icon */}
+                        <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className="h-5 w-5 ml-3 text-gray-400"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                            />
+                        </svg>
+
+                        {/* Input field */}
                         <input
                             type="text"
-                            placeholder="Search documents..."
-                            className="w-full px-3 py-2 bg-slate-700 border border-slate-600 rounded text-white"
+                            placeholder="search box clear filter"
+                            className="w-full bg-transparent border-0 outline-none px-3 py-2 text-white placeholder-gray-400 focus:ring-0"
                             value={searchTerm}
                             onChange={(e) => {
                                 setSearchTerm(e.target.value);
-                                setCurrentPage(1); // Reset to first page on search
+                                setCurrentPage(1);
                             }}
                         />
+
+                        {/* Clear button */}
+                        {searchTerm && (
+                            <button
+                                className="px-3 py-2 text-gray-400 hover:text-white"
+                                onClick={() => {
+                                    setSearchTerm('');
+                                    setCurrentPage(1);
+                                }}
+                                title="Clear search"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                >
+                                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                                </svg>
+                            </button>
+                        )}
                     </div>
 
                     {/* Document list */}
@@ -152,19 +197,39 @@ export default function MyDocumentsComponent({ onClose }) {
                         <span className="text-sm text-gray-400">
                             Showing {indexOfFirstDoc + 1}-{Math.min(indexOfLastDoc, filteredDocs.length)} of {filteredDocs.length}
                         </span>
-                        <div className="flex space-x-1">
-                            {Array.from({ length: Math.ceil(filteredDocs.length / docsPerPage) }).map((_, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => paginate(index + 1)}
-                                    className={`px-2.5 py-1 rounded text-xs ${currentPage === index + 1
-                                        ? 'bg-purple-600 text-white'
-                                        : 'bg-slate-700 text-gray-300 hover:bg-slate-600'
-                                        }`}
-                                >
-                                    {index + 1}
-                                </button>
-                            ))}
+                        <div className="flex items-center space-x-1">
+                            {/* Previous button */}
+                            <button
+                                onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+                                disabled={currentPage === 1}
+                                className={`p-1 rounded ${currentPage === 1
+                                        ? 'text-gray-500'
+                                        : 'text-gray-300 hover:bg-slate-600'
+                                    }`}
+                            >
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+
+                            {/* Page number */}
+                            <span className="px-3 py-1 bg-purple-600 text-white rounded text-xs">
+                                {currentPage}
+                            </span>
+
+                            {/* Next button */}
+                            <button
+                                onClick={() => currentPage < Math.ceil(filteredDocs.length / docsPerPage) && paginate(currentPage + 1)}
+                                disabled={currentPage >= Math.ceil(filteredDocs.length / docsPerPage)}
+                                className={`p-1 rounded ${currentPage >= Math.ceil(filteredDocs.length / docsPerPage)
+                                        ? 'text-gray-500'
+                                        : 'text-gray-300 hover:bg-slate-600'
+                                    }`}
+                            >
+                                <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </>
