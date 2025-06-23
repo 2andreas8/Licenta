@@ -5,7 +5,7 @@ from nlp.utils import get_vectorstore_for_file, hybrid_search, get_relevant_docu
 from nlp.utils import generate_answer_with_sources, generate_summary_for_chunks
 from langchain.memory import ConversationBufferWindowMemory
 from conversations.models import Conversation, Message
-from documents.models import Document
+from documents.models import Document, DocumentSummary
 from conversations.schemas import MessageCreate
 from database.db import SessionLocal
 from sqlalchemy.orm import Session
@@ -103,7 +103,7 @@ async def generate_document_summary(
     db: Session = Depends(get_db)
 ):
     """Generates a summary for the document associated with the given file_id."""
-    '''document = db.query(Document).filter(
+    document = db.query(Document).filter(
         Document.id == file_id,
         Document.user_id == current_user.id
     ).first()
@@ -111,6 +111,24 @@ async def generate_document_summary(
     if not document:
         raise HTTPException(status_code=404, detail="Document not found or not owned by user.")
     
+    # Check if a summary already exists
+    existing_summary = db.query(DocumentSummary).filter(
+        DocumentSummary.document_id == file_id
+    ).first()
+
+    if existing_summary:
+        return {
+            "document_id": file_id,
+            "document_title": document.filename,
+            "summary": existing_summary.summary_text,
+            "metrics": {
+                "chunk_count": existing_summary.chunk_count,
+                "processing_time_seconds": existing_summary.processing_time,
+                "cached": True,
+                "generated_at": existing_summary.generated_at.isoformat() if existing_summary.generated_at else None
+            }
+        }
+
     persist_dir = os.path.abspath(f"./vectorstore/{current_user.id}/{file_id}")
     try:
         vectorstore = get_vectorstore_for_file(persist_dir)
@@ -135,6 +153,15 @@ async def generate_document_summary(
 
         processing_time = time.time() - start_time
 
+        new_summary = DocumentSummary(
+            document_id=file_id,
+            summary_text=summary,
+            chunk_count=chunk_count,
+            processing_time=processing_time
+        )
+        db.add(new_summary)
+        db.commit()
+
         result = {
             "document_id": file_id,
             "document_title": document.filename,
@@ -142,23 +169,22 @@ async def generate_document_summary(
             "metrics": {
                 "chunk_count": chunk_count,
                 "total_characters": total_chars,
-                "processing_time_seconds": round(processing_time, 2)
+                "processing_time_seconds": round(processing_time, 2),
+                "cached": False
             }
         }
-
-        # TODO save to db
 
         return result
 
     except Exception as e:
         print(f"Error generating summary: {e}")
-        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")'''
-    
+        raise HTTPException(status_code=500, detail=f"Error generating summary: {str(e)}")
+    '''
     return {
         "document_id": file_id,
         "document_title": "Example Document",
         "summary": "This is a placeholder summary for the document.",
-    }
+    } '''
 
 # TEST
 @router.get("/debug/search-comparison/{file_id}")
