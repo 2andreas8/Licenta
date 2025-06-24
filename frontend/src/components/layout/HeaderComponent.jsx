@@ -10,6 +10,40 @@ function getInitials(name) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function AvatarInitials({ name, size = "100%" }) {
+  if (!name) name = "User";
+  
+  const getColorFromName = (name) => {
+    let hash = 0;
+    for (let i = 0; i < name.length; i++) {
+      hash = name.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const hue = Math.abs(hash % 360);
+    return `hsl(${hue}, 65%, 45%)`;
+  };
+  
+  const initials = getInitials(name);
+  const bgColor = getColorFromName(name);
+  
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" style={{ display: 'block', width: '100%', height: '100%' }}>
+      <circle cx="50" cy="50" r="50" fill={bgColor} />
+      <text
+        x="50"
+        y="50"
+        dy="0.35em"
+        fontFamily="Arial, sans-serif"
+        fontSize="40"
+        fontWeight="bold"
+        textAnchor="middle"
+        fill="white"
+      >
+        {initials}
+      </text>
+    </svg>
+  );
+}
+
 export default function HeaderComponent({ onShowProfile, onSidebarToggle, isSidebarOpen }) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
@@ -42,7 +76,7 @@ export default function HeaderComponent({ onShowProfile, onSidebarToggle, isSide
                     {!isSidebarOpen && (
                         <button
                             onClick={onSidebarToggle}
-                            className="text-white text-2xl font-bold"
+                            className="text-gray-300 text-2xl font-bold hover:text-white transition-all duration-200"
                         >
                             ☰
                         </button>
@@ -57,10 +91,10 @@ export default function HeaderComponent({ onShowProfile, onSidebarToggle, isSide
             <div className="relative profile-dropdown" ref={dropdownRef}>
                 <button
                     onClick={() => setOpen(!open)}
-                    className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-600/80 hover:bg-purple-700 text-white font-medium transition-all duration-200 ring-2 ring-slate-700 hover:ring-purple-500"
+                    className="flex items-center justify-center w-9 h-9 rounded-full bg-purple-600/80 hover:bg-white text-white font-medium transition-all duration-200 ring-2 ring-slate-700 hover:ring-gray-300 hover:text-purple-600"
                     aria-label="Open profile menu"
                 >
-                    {initials}
+                    <AvatarInitials name={full_name} />
                 </button>
                 {open && (
                     <div className="absolute right-0 mt-2 w-60 bg-slate-800 text-white rounded-xl shadow-xl z-50 border border-slate-700 py-1 overflow-hidden">

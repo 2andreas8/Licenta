@@ -32,7 +32,7 @@ export default function Login() {
             const response = await login(username, password);
             const userDetails = await getCurrentUser();
             sessionStorage.setItem('full_name', userDetails.full_name);
-            toast.success('Welcome back, ' + username + '!');
+            //toast.success('Welcome back, ' + username + '!');
             navigator('/dashboard');
         } catch (error) {
             // alert(error.detail || 'Login failed');
