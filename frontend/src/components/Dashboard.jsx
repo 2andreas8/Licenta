@@ -95,7 +95,7 @@ export default function Dashboard() {
                     </button>
                 </div>
             ) : (
-                <div className="p-6 w-full max-w-screen-xl mx-auto">
+                <div className="pt-16 px-6 pb-6 w-full max-w-screen-xl mx-auto">
                     {/* Time-based greeting - moved above the workspace */}
                     <div className="mb-6">
                         <h1 className="text-3xl font-light text-white">
