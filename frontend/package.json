@@ -12,6 +12,7 @@
   "dependencies": {
     "@heroicons/react": "^2.2.0",
     "axios": "^1.9.0",
+    "date-fns": "^4.1.0",
     "katex": "^0.16.22",
     "pdfjs-dist": "^5.3.31",
     "react": "^19.1.0",

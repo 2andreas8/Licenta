@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import { toast } from 'react-toastify';
 import EventBus from '../../services/EventBus';
 import { EVENTS } from '../../services/events';
+import { parseISO, format } from 'date-fns';
+import { ro } from 'date-fns/locale';
 
 export default function SummaryDialog({ }) {
     const [summary, setSummary] = useState(null);
@@ -15,7 +17,7 @@ export default function SummaryDialog({ }) {
         });
 
         const errorSubscription = EventBus.subscribe(EVENTS.SUMMARY_ERROR, () => {
-            // Handle error if needed
+            // Handle error
         });
 
         return () => {
@@ -114,15 +116,21 @@ export default function SummaryDialog({ }) {
                                             <span>{summary.metrics.processing_time_seconds}s</span>
                                         </div>
                                     )}
-                                    {/* Adaugă indicatorul de cache aici */}
+                                    {/* Acache indicator */}
                                     {summary.metrics.cached && (
                                         <div className="flex items-center">
                                             <svg className="h-4 w-4 text-green-400 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                                             </svg>
                                             <span className="text-green-300">
-                                                Cached {summary.metrics.generated_at &&
-                                                    `(${new Date(summary.metrics.generated_at).toLocaleString()})`}
+                                                Cached {summary.metrics.generated_at && (
+                                                    (() => {
+                                                        const timestamp = summary.metrics.generated_at;
+                                                        // Tratăm explicit ca UTC
+                                                        const date = parseISO(timestamp + 'Z');
+                                                        return `(${format(date, 'dd.MM.yyyy HH:mm:ss', { locale: ro })})`;
+                                                    })()
+                                                )}
                                             </span>
                                         </div>
                                     )}

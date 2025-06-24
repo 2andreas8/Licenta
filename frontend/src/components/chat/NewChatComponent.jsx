@@ -62,7 +62,7 @@ export default function NewChatComponent() {
             setCurrentConversation(conversation);
             setUploadedFile({ id: documentId, filename: filename });
 
-            toast.success("Conversation created successfully!");
+            // toast.success("Conversation created successfully!");
 
             setTimeout(() => {
                 navigate(`/chat/${conversation.id}`);
@@ -151,7 +151,7 @@ export default function NewChatComponent() {
 
                         await startNewConversation(documentId, result.filename);
                         setUploadedFile(result);
-                        toast.success("File uploaded and processed successfully!");
+                        // toast.success("File uploaded and processed successfully!");
                     } else {
                         const processingProgress = 90 + Math.min(9, attemps);
                         setUploadProgress(processingProgress);
