@@ -84,7 +84,7 @@ export default function SummaryDialog({ }) {
                 </div>
 
                 {/* Content */}
-                <div className="px-6 py-5 overflow-auto flex-grow bg-gradient-to-b from-slate-900 to-slate-800">
+                <div className="custom-scrollbar px-6 py-5 overflow-auto flex-grow bg-gradient-to-b from-slate-900 to-slate-800">
                     <div className="p-5 bg-slate-800/80 rounded-lg border border-purple-900/30 shadow-inner">
                         <div className="prose-sm max-w-none">
                             <ReactMarkdown components={markdownComponents}>

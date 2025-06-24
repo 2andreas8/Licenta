@@ -123,7 +123,7 @@ export default function ExistingChatComponent({ conversationId }) {
 
     return (
         // ————————————— Outer wrapper —————————————
-        <div className="w-full max-w-3xl flex flex-col rounded-2xl shadow-2xl bg-gradient-to-br from-purple-800/70 to-purple-900/70 backdrop-blur-md border border-white/20 overflow-hidden m-auto h-[80vh] max-h-[800px]">
+        <div className="w-full max-w-3xl flex flex-col rounded-2xl shadow-2xl bg-gradient-to-br from-purple-800/60 to-purple-900/70 backdrop-blur-md border border-white/20 overflow-hidden m-auto h-[80vh] max-h-[800px]">
 
             {/* ——— 1) Header ——— */}
             <div className="px-6 py-4 bg-gradient-to-r from-purple-900 to-purple-700 text-white border-b border-white/20 flex items-center justify-between">
@@ -162,7 +162,7 @@ export default function ExistingChatComponent({ conversationId }) {
                                 <div
                                     className={`px-5 py-3 rounded-xl max-w-xl shadow-md transition-all ${msg.role === "user"
                                         ? "bg-gradient-to-br from-purple-500 to-purple-700 text-white"
-                                        : "bg-white/90 text-gray-900 border-l-4 border-purple-400"
+                                        : "bg-white/95 text-gray-900 ring-1 ring-purple-200/50"
                                         }`}
                                 >
                                     {msg.role === "assistant" ? (

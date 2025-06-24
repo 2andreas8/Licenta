@@ -140,17 +140,14 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
 
     return (
         <>
-            <aside
-                className={`fixed top-0 left-0 h-full w-64 bg-white dark:bg-neutral-800 shadow-lg border-r border-gray-200 dark:border-neutral-700 z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"
-                    }`}
-            >
-                <div className="p-4 flex justify-between items-center border-b border-gray-200 dark:border-neutral-700">
+            <aside className={`fixed top-0 left-0 h-full w-64 bg-slate-800 shadow-lg border-r border-slate-700 z-50 transform transition-transform duration-300 ${isOpen ? "translate-x-0" : "-translate-x-full"}`}>
+                <div className="p-4 flex justify-between items-center border-b border-slate-700">
                     <h2 className="text-lg font-semibold dark:text-white flex items-center">
                         Menu
                     </h2>
                     <button
                         onClick={onClose}
-                        className="text-gray-500 hover:text-black p-1 rounded-full hover:bg-gray-200 dark:hover:bg-neutral-700 transition"
+                        className="text-slate-500 hover:text-black p-1 rounded-full hover:bg-slate-200 dark:hover:bg-neutral-700 transition"
                     >
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -170,7 +167,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
 
                     <div className="space-y-1.5">
                         <button
-                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-200 hover:bg-slate-700"
                             onClick={handleDashboardNavigate}
                         >
                             <svg className="w-5 h-5 mr-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
@@ -181,7 +178,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                         </button>
 
                         <button
-                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-200 hover:bg-slate-700"
                             onClick={() => { setDocs(true); }}
                         >
                             <svg className="w-5 h-5 mr-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
@@ -191,7 +188,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                         </button>
 
                         <button
-                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-700 dark:text-gray-200 hover:bg-purple-100 dark:hover:bg-purple-900/30"
+                            className="w-full flex items-center px-4 py-2 text-left rounded-md text-gray-200 hover:bg-slate-700"
                             onClick={handleNavigateToStats}
                         >
                             <svg className="w-5 h-5 mr-2 text-purple-500" fill="currentColor" viewBox="0 0 20 20">
@@ -205,12 +202,12 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                 {/* Conversation list */}
                 <div className='flex-1 overflow-y-auto'>
                     <div className='px-4 py-2'>
-                        <h3 className='text-sm font-semibold text-purple-200 mb-2'>Recent Conversations</h3>
-                        <div className="mb-3 relative flex items-center bg-purple-800/30 rounded-md border border-purple-500/30">
+                        <h3 className='text-sm font-semibold text-gray-200 mb-2'>Recent Conversations</h3>
+                        <div className="mb-3 relative flex items-center bg-slate-700 rounded-md border border-slate-600/50">
                             {/* Search icon */}
                             <svg
                                 xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4 ml-3 text-purple-300"
+                                className="h-4 w-4 ml-3 text-white"
                                 fill="none"
                                 viewBox="0 0 24 24"
                                 stroke="currentColor"
@@ -229,14 +226,14 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 placeholder="Search conversations..."
-                                className="w-full bg-transparent border-0 outline-none px-2 py-2 text-white placeholder-purple-300 text-sm focus:outline-none focus:ring-0"
+                                className="w-full bg-transparent border-0 outline-none px-2 py-2 text-white placeholder-gray-400 text-sm focus:outline-none focus:ring-0"
                             />
 
                             {/* Clear button */}
                             {searchTerm && (
                                 <button
                                     onClick={() => setSearchTerm("")}
-                                    className="px-3 py-2 text-purple-300 hover:text-white"
+                                    className="px-3 py-2 text-gray-300 hover:text-white"
                                     title="Clear search"
                                 >
                                     <svg
@@ -263,32 +260,32 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                                     height={Math.min(500, window.innerHeight - 280)}
                                     width="100%"
                                     itemCount={filteredConversations.length}
-                                    itemSize={45} 
+                                    itemSize={45}
                                     className="custom-scrollbar"
                                 >
                                     {({ index, style }) => {
                                         const conv = filteredConversations[index];
                                         return (
-                                            <div style={style} key={conv.id} className='flex items-center group hover:bg-purple-700/59 rounded'>
+                                            <div style={style} key={conv.id} className='flex items-center group hover:bg-slate-700 rounded'>
                                                 <button
                                                     onClick={() => {
                                                         navigate(`/chat/${conv.id}`);
                                                         onClose();
                                                     }}
-                                                    className='w-full px-4 py-2 text-left hover:bg-purple-700/50 text-purple-100 text-sm truncate rounded'
+                                                    className='w-full px-4 py-2 text-left hover:bg-slate-700 text-gray-200 text-sm truncate rounded'
                                                 >
                                                     <span className="truncate flex-1">{conv.title || "Untitled Conversation"}</span>
                                                 </button>
                                                 <button
                                                     onClick={(e) => handleRenameConversation(e, conv)}
-                                                    className='px-2 py-2 text-purple-300 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                                    className='px-2 py-2 text-gray-300 hover:text-blue-400 opacity-0 group-hover:opacity-100 transition-opacity'
                                                 >
                                                     <PencilIcon className='h-4 w-4' aria-hidden="true" />
                                                     <span className='sr-only'>Rename Conversation</span>
                                                 </button>
                                                 <button
                                                     onClick={(e) => handleDeleteConversation(e, conv.id)}
-                                                    className='px-2 py-2 text-purple-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
+                                                    className='px-2 py-2 text-gray-300 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity'
                                                 >
                                                     <TrashIcon className='h-4 w-4' aria-hidden="true" />
                                                     <span className='sr-only'>Delete Conversation</span>
@@ -299,7 +296,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                                 </List>
                             </div>
                         ) : (
-                            <div className='text-purple-200 text-sm'>No conversations found.</div>
+                            <div className='text-gray-200 text-sm'>No conversations found.</div>
                         )}
                     </div>
                 </div>
@@ -308,7 +305,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
             {/* Delete Modal */}
             {showDeleteModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-                    <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                    <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full mx-4">
                         <h3 className="text-lg font-semibold mb-4 dark:text-white">
                             Delete Conversation
                         </h3>
@@ -335,7 +332,7 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
             {/* Rename Modal */}
             {showRenameModal && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-                    <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                    <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full mx-4">
                         <h3 className="text-lg font-semibold mb-4 dark:text-white">
                             Rename Conversation
                         </h3>
@@ -343,13 +340,38 @@ export default function SidebarComponent({ isOpen, onClose, setDocs }) {
                             <label className="block text-gray-700 dark:text-gray-300 mb-2" htmlFor="conversationTitle">
                                 New Title:
                             </label>
-                            <input
-                                type="text"
-                                id="conversationTitle"
-                                value={newTitle}
-                                onChange={(e) => setNewTitle(e.target.value)}
-                                className="w-full px-3 py-2 border dark:bg-neutral-700 border-gray-300 dark:border-neutral-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 dark:text-white"
-                            />
+                            <div className='relative flex items-center'>
+                                <input
+                                    type="text"
+                                    id="conversationTitle"
+                                    value={newTitle}
+                                    onChange={(e) => setNewTitle(e.target.value)}
+                                    className="w-full px-3 py-2 border bg-slate-700 border-slate-600 rounded focus:outline-none focus:ring-2 focus:ring-purple-500 text-white pr-10"
+                                    placeholder="Enter new conversation title"
+                                />
+                                {/* Clear button */}
+                                {newTitle && (
+                                    <button
+                                        onClick={() => setNewTitle("")}
+                                        className="absolute right-2 text-gray-300 hover:text-white"
+                                        title="Clear search"
+                                    >
+                                        <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            className="h-4 w-4"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="currentColor"
+                                            strokeWidth="2"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                        >
+                                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
                         </div>
 
                         <div className="flex justify-end space-x-3">

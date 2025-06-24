@@ -3,21 +3,21 @@
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: rgba(91, 33, 182, 0.1);
+  background: rgba(30, 41, 59, 0.2); /* slate-800 cu transparență */
   border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(139, 92, 246, 0.6);
+  background: rgba(71, 85, 105, 0.6); /* slate-600 cu transparență */
   border-radius: 8px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(139, 92, 246, 0.8);
+  background: rgba(100, 116, 139, 0.8); /* slate-500 cu transparență la hover */
 }
 
 /* Firefox */
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.6) rgba(91, 33, 182, 0.1);
+  scrollbar-color: rgba(71, 85, 105, 0.6) rgba(30, 41, 59, 0.2);
 }
