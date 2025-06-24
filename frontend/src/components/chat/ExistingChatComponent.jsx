@@ -6,6 +6,8 @@ import { askQuestion } from '../../services/chatService';
 import { EVENTS } from '../../services/events';
 import EventBus from '../../services/EventBus';
 import ReactMarkdown from 'react-markdown';
+import remarkMath from 'remark-math';
+import rehypeKatex from 'rehype-katex';
 
 export default function ExistingChatComponent({ conversationId }) {
     const [messages, setMessages] = useState([]);
@@ -119,6 +121,13 @@ export default function ExistingChatComponent({ conversationId }) {
                 <code className="block bg-gray-100 p-2 rounded my-2 font-mono overflow-x-auto" {...props} />,
         strong: ({ node, ...props }) => <strong className="font-semibold text-purple-900" {...props} />,
         em: ({ node, ...props }) => <em className="text-italic" {...props} />,
+
+        math: ({ node, ...props }) => (
+            <span className="text-black py-0.5" {...props} />
+        ),
+        inlineMath: ({ node, ...props }) => (
+            <span className="text-black py-0.5" {...props} />
+        )
     };
 
     return (
@@ -167,7 +176,11 @@ export default function ExistingChatComponent({ conversationId }) {
                                 >
                                     {msg.role === "assistant" ? (
                                         <div className="markdown-content">
-                                            <ReactMarkdown components={markdownComponents}>
+                                            <ReactMarkdown
+                                                components={markdownComponents}
+                                                remarkPlugins={[remarkMath]} // identify math syntax
+                                                rehypePlugins={[rehypeKatex]} // render math with KaTeX
+                                            >
                                                 {highlightSourceReferences(msg.content)}
                                             </ReactMarkdown>
                                         </div>
