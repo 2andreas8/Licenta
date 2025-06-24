@@ -144,28 +144,57 @@ def generate_answer_with_sources(question: str, docs: list, memory=None) -> dict
     context = "\n\n".join(context_parts)
     print(f"Created context with {len(context_parts)} parts")
 
-    template = """\
-    Use **only** the following context fragments and chat history to answer the question. Do **not** use any external knowledge; if the answer isn’t in the provided context, reply: “Sorry, can’t answer your question, try asking it in a different way.”
+    lang = detect_language(question)
+    
+    # Alege promptul potrivit bazat pe limba detectată
+    if lang == 'ro':
+        template = """\
+        Folosește **doar** următoarele fragmente de context și istoricul conversației pentru a răspunde la întrebare. **Nu** utiliza cunoștințe externe; dacă răspunsul nu se află în contextul furnizat, răspunde: "Îmi pare rău, nu pot răspunde la întrebarea ta, încearcă să o pui în alt mod."
 
-    [Formatting Instructions]
-    1. **Concise Answer**: 1-2 sentences that directly address the question.  
-    2. **Detailed Explanation**: 3-5 bullet points:  
-    - Summarize key concepts.  
-    - Include a brief example if it clarifies your point.  
-    3. **Citations**: Mark each fact you draw from a fragment as `[Fragment X, Page Y]` where Y is the page number.  
-    4. **Code/Algorithms**: If showing code or algorithms, format them clearly.  
-    5. **Contextual Linking**: Refer to prior conversation when relevant.
+        [Instrucțiuni de formatare]
+        1. **Răspuns concis**: 1-2 propoziții care abordează direct întrebarea.
+        2. **Explicație detaliată**: 3-5 puncte:
+        - Rezumă conceptele cheie.
+        - Include un exemplu scurt dacă clarifică răspunsul.
+        3. **Citări**: Marchează fiecare fapt extras dintr-un fragment ca `[Fragmentul X, Pagina Y]` unde Y este numărul paginii.
+        4. **Cod/Algoritmi**: Dacă prezinți cod sau algoritmi, formatează-le clar.
+        5. **Formule matematice**: Formatează formulele matematice cu $...$ pentru formule inline și $$...$$ pentru formule bloc. Exemplu: $f(x) = x^2$ sau $$E = mc^2$$
+        6. **Legătură contextuală**: Fă referire la conversația anterioară când este relevant.
 
-    **Context Fragments:**  
-    {context}
+        **Fragmente de context:**
+        {context}
 
-    **Chat History:**  
-    {chat_history}
+        **Istoricul conversației:**
+        {chat_history}
 
-    **Question:**  
-    {question}
+        **Întrebare:**
+        {question}
 
-    **Answer:**"""
+        **Răspuns:**"""
+    else:
+        template = """\
+        Use **only** the following context fragments and chat history to answer the question. Do **not** use any external knowledge; if the answer isn’t in the provided context, reply: “Sorry, can’t answer your question, try asking it in a different way.”
+
+        [Formatting Instructions]
+        1. **Concise Answer**: 1-2 sentences that directly address the question.  
+        2. **Detailed Explanation**: 3-5 bullet points:  
+        - Summarize key concepts.  
+        - Include a brief example if it clarifies your point.  
+        3. **Citations**: Mark each fact you draw from a fragment as `[Fragment X, Page Y]` where Y is the page number.  
+        4. **Code/Algorithms**: If showing code or algorithms, format them clearly.  
+        5. **Mathematical Formulas**: Format mathematical formulas with $...$ for inline formulas and $$...$$ for block formulas. Example: $f(x) = x^2$ or $$E = mc^2$$
+        6. **Contextual Linking**: Refer to prior conversation when relevant.
+
+        **Context Fragments:**  
+        {context}
+
+        **Chat History:**  
+        {chat_history}
+
+        **Question:**  
+        {question}
+
+        **Answer:**"""
 
 
     
