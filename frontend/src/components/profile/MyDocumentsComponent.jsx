@@ -237,8 +237,8 @@ export default function MyDocumentsComponent({ onClose }) {
 
             {/* Confirmation Modal */}
             {docToDelete && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[100]">
-                    <div className="bg-white dark:bg-neutral-800 rounded-lg p-6 max-w-sm w-full mx-4">
+                <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[100]">
+                    <div className="bg-slate-800 rounded-lg p-6 max-w-sm w-full mx-4 border border-purple-800/30 shadow-2xl">
                         <h3 className="text-lg font-semibold mb-4 dark:text-white">
                             Delete Document
                         </h3>
