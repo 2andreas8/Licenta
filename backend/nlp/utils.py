@@ -158,8 +158,7 @@ def generate_answer_with_sources(question: str, docs: list, memory=None) -> dict
         - Include un exemplu scurt dacă clarifică răspunsul.
         3. **Citări**: Marchează fiecare fapt extras dintr-un fragment ca `[Fragmentul X, Pagina Y]` unde Y este numărul paginii.
         4. **Cod/Algoritmi**: Dacă prezinți cod sau algoritmi, formatează-le clar.
-        5. **Formule matematice**: Formatează formulele matematice cu $...$ pentru formule inline și $$...$$ pentru formule bloc. Exemplu: $f(x) = x^2$ sau $$E = mc^2$$
-        6. **Legătură contextuală**: Fă referire la conversația anterioară când este relevant.
+        5. **Legătură contextuală**: Fă referire la conversația anterioară când este relevant.
 
         **Fragmente de context:**
         {context}
@@ -182,8 +181,7 @@ def generate_answer_with_sources(question: str, docs: list, memory=None) -> dict
         - Include a brief example if it clarifies your point.  
         3. **Citations**: Mark each fact you draw from a fragment as `[Fragment X, Page Y]` where Y is the page number.  
         4. **Code/Algorithms**: If showing code or algorithms, format them clearly.  
-        5. **Mathematical Formulas**: Format mathematical formulas with $...$ for inline formulas and $$...$$ for block formulas. Example: $f(x) = x^2$ or $$E = mc^2$$
-        6. **Contextual Linking**: Refer to prior conversation when relevant.
+        5. **Contextual Linking**: Refer to prior conversation when relevant.
 
         **Context Fragments:**  
         {context}

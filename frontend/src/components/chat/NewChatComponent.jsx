@@ -372,7 +372,7 @@ export default function NewChatComponent() {
                                         <svg className="w-10 h-5 text-purple-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                                         </svg>
-                                        <span className="text-purple-300 font-medium">Choose a file or drag & drop</span>
+                                        <span className="text-purple-300 font-medium">Choose a file</span>
                                         <span className="text-slate-400 text-sm mt-1">.pdf, .docx, .txt</span>
                                     </div>
                                     <input
@@ -398,7 +398,15 @@ export default function NewChatComponent() {
                                             {preview.content.length > 500 && "..."}
                                         </div>
                                     )}
-                                    {preview.type === "pdf" && (
+                                    {preview.type === 'pdf' && (
+                                        <div className="text-center text-slate-400 bg-slate-800 p-3 rounded">
+                                            <svg className="w-12 h-5 mx-auto mb-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                            </svg>
+                                            <p>Preview not available for PDF files</p>
+                                        </div>
+                                    )}
+                                    {/*{preview.type === "pdf" && (
                                         <div className="flex flex-col items-center">
                                             <Document
                                                 file={preview.url}
@@ -431,8 +439,7 @@ export default function NewChatComponent() {
                                                     </button>
                                                 </div>
                                             )}
-                                        </div>
-                                    )}
+                                        </div>*/}
                                     {preview.type === 'docx' && (
                                         <div className="text-center text-slate-400 bg-slate-800 p-3 rounded">
                                             <svg className="w-12 h-5 mx-auto mb-3 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
