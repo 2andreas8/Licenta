@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getConversationMessages, addMessageToConversation, getConversation } from '../../services/conversationsService';
+import { getDocumentById } from '../../services/documentService';
 import { toast } from 'react-toastify';
 import { askQuestion } from '../../services/chatService';
 import { EVENTS } from '../../services/events';
@@ -13,7 +14,7 @@ export default function ExistingChatComponent({ conversationId }) {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [loading, setLoading] = useState(true);
-    const [uploadedFile, setUploadedFile] = useState([]);
+    const [uploadedFile, setUploadedFile] = useState({});
     const [waitingForAnswer, setWaitingForAnswer] = useState(false);
     const messagesEndRef = useRef(null);
     const navigate = useNavigate();
@@ -64,8 +65,13 @@ export default function ExistingChatComponent({ conversationId }) {
         try {
             const conversation = await getConversation(conversationId);
             const message = await getConversationMessages(conversationId);
-            setUploadedFile({ id: conversation.document_id, title: conversation.title });
+            setUploadedFile({ id: conversation.document_id, title: conversation.title, documentTitle: "" });
             setMessages(message);
+
+            if(conversation.document_id) {
+                const document = await getDocumentById(conversation.document_id);
+                setUploadedFile((prev) => ({ ...prev, documentTitle: document.filename }));
+            }
         } catch (error) {
             toast.error("Could not load conversation");
             navigate("/chat/new");
@@ -137,7 +143,7 @@ export default function ExistingChatComponent({ conversationId }) {
                     <div>
                         <div className="text-lg font-semibold">Chat about:</div>
                         <div className="text-purple-200 truncate max-w-sm">
-                            {uploadedFile?.title || "No file uploaded yet"}
+                            {uploadedFile?.documentTitle || uploadedFile?.title || "No file uploaded yet"}
                         </div>
                     </div>
                 </div>
