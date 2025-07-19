@@ -121,13 +121,6 @@ export default function ExistingChatComponent({ conversationId }) {
                 <code className="block bg-gray-100 p-2 rounded my-2 font-mono overflow-x-auto" {...props} />,
         strong: ({ node, ...props }) => <strong className="font-semibold text-purple-900" {...props} />,
         em: ({ node, ...props }) => <em className="text-italic" {...props} />,
-
-        math: ({ node, ...props }) => (
-            <span className="text-black py-0.5" {...props} />
-        ),
-        inlineMath: ({ node, ...props }) => (
-            <span className="text-black py-0.5" {...props} />
-        )
     };
 
     return (
@@ -178,8 +171,6 @@ export default function ExistingChatComponent({ conversationId }) {
                                         <div className="markdown-content">
                                             <ReactMarkdown
                                                 components={markdownComponents}
-                                                remarkPlugins={[remarkMath]} // identify math syntax
-                                                rehypePlugins={[rehypeKatex]} // render math with KaTeX
                                             >
                                                 {highlightSourceReferences(msg.content)}
                                             </ReactMarkdown>
